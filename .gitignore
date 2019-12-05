@@ -1,0 +1,15 @@
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+example/emacs.d/ido.last
+
+TAGS
+example/emacs.d/cache/
+example/emacs.d/erlang*
+example/emacs.d/elpa/
