@@ -18,16 +18,6 @@ extensions to erlang-mode:
   for Erlang projects (makes it possible to, e.g., go to the function
   under the cursor by pressing "M-.")
 
-Test YAEMEP in Emacs Without Installing
----------------------------------------
-
-Run the following commands in a command prompt:
-
-```bash
-git clone https://github.com/kjellwinblad/yaemep.git
-./yaemep/example/emacs_with_erlang_and_yaemep.sh ~/my_fav_proj/my_fav_file.erl
-```
-
 Install
 -------
 
@@ -129,6 +119,18 @@ Install
    ```
 3. Comment out what you do not want in the above
 4. Restart Emacs
+
+
+Test YAEMEP in Emacs Without Installing
+---------------------------------------
+
+Run the following commands in a command prompt:
+
+```bash
+git clone https://github.com/kjellwinblad/yaemep.git
+./yaemep/example/emacs_with_erlang_and_yaemep.sh ~/my_fav_proj/my_fav_file.erl
+```
+
 
 User Guide
 ----------
