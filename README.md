@@ -139,8 +139,9 @@ User Guide
 
 Press the shortcut for completion ("M-TAB" by default) somewhere
 inside an Erlang function definition to trigger completion. The line
-the cursor is on need to start with a space or a tab character for
-completion to work. Below is a list of special completions:
+that the cursor is on need to start with a space or a tab character
+for completion to work. Below is a list of the types of completions
+available and descriptions of how to trigger them:
 
 * **modules, local functions and variables** -- Press the completion
   shortcut when there is a space before the cursor/point

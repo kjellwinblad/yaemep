@@ -595,9 +595,34 @@ wrapped_main(["list_modules_and_functions_in_erl_file",
 wrapped_main(["list_local_vars", _CacheDir, _FileNameStr, CompletionString]) ->
     io:format("~s", [lists:join(";", list_local_vars(CompletionString))]).
 
--spec main([string()]) -> ok.
+-spec main([string()]) -> ok | error.
 main(List) ->
-    wrapped_main(List).
+    try
+        wrapped_main(List)
+    catch
+        _:Term ->
+            try
+                case List of
+                    [_, CacheDir|_]  ->
+                        ErrlorLogFile =
+                            filename:join(CacheDir, "error_log.txt"),
+                        PrevErrLog =
+                            case file:read_file(ErrlorLogFile) of
+                                {ok, Binary} -> Binary;
+                                _ -> <<"">>
+                            end,
+                        filelib:ensure_dir(CacheDir),
+                        file:write_file(ErrlorLogFile,
+                                        [PrevErrLog, "\n",
+                                         io_lib:format("~tp.~n", [Term])],
+                                        [append]);
+                    _ -> error
+                end
+            catch
+                _:_ -> error
+            end
+
+    end.
 
 
 
