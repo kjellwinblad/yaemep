@@ -25,8 +25,6 @@ fi
 
 ACTUAL_HASH=`find "$DIR/emacs.d/erlang" -type f -print0 | sort -z | xargs -0 cat | sha512sum | head -n1 | awk '{print $1;}'`
 
-echo "$ACTUAL_HASH"
-echo "$ERLANG_SHA512"
 
 if ! (test "$ACTUAL_HASH" = "$ERLANG_SHA512")
 then

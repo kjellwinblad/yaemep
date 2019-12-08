@@ -10,6 +10,8 @@
        (directory-file-name
 	(file-name-directory
 	 (directory-file-name user-emacs-directory)))))
+;; Could be unsafe but fixes experied key issue
+(setq package-check-signature nil)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -20,12 +22,8 @@
 (setq inhibit-startup-screen t)
 (setq-default indent-tabs-mode nil)
 (setq c-basic-offset 2)
-;;
-;; Uncomment the two lines below to make buffer switch command and the
-;; find-file command show suggestions
-;;
-;; (require 'ido)
-;; (ido-mode 1)
+(require 'ido)
+(ido-mode 1)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
