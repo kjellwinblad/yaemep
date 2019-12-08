@@ -24,6 +24,7 @@ Quick Install
 2. Download YAEMEP (e.g., by running `git clone https://github.com/kjellwinblad/yaemep.git`)
 3. Put the following in your Emacs init file:
 
+   ```elisp
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; !!!IMPORTANT!!! Add yaemep to your Emacs load-path
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -32,8 +33,8 @@ Quick Install
         (or (and (boundp 'erlang-mode-path) erlang-mode-path)
         "/the/path/to/your/yaemep/"))
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        ;
-        ;
+
+
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Install erlang-yaemep-completion-mode
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -66,8 +67,8 @@ Quick Install
         (package-install 'company)))
         ;; --------------------------------------------------------
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        ;
-        ;
+
+
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Install erlang-yaemep-etags-auto-gen-mode
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -112,6 +113,7 @@ Quick Install
         (setq etags-table-search-up-depth 99)
         ;; -------------------------------------------------------
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        ```
 4. Restart Emacs
 
 User Guide
