@@ -1,17 +1,9 @@
 (require 'yaemep)
 
-(defun erlang-yaemep-company-complete-or-completion-at-point ()
-  "Run company-complete if activated and run completion-at-point
- otherwise"
-  (interactive)
-  (if (and (boundp 'company-mode) company-mode (fboundp 'company-complete))
-      (company-complete)
-    (completion-at-point)))
-
 
 ;;;###autoload
 (define-minor-mode erlang-yaemep-etags-auto-gen-mode
-  ""
+  "Automatically create etags TAGS file for Erlang projects"
   :lighter " erlang-yaemep-etags")
 
 ;;;###autoload

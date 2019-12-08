@@ -16,7 +16,7 @@
 
 ;;;###autoload
 (define-minor-mode erlang-yaemep-completion-mode
-  ""
+  "Add completion-at-point function for Erlang"
   :lighter " erlang-yaemep-comp"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "M-TAB") 'erlang-yaemep-company-complete-or-completion-at-point)

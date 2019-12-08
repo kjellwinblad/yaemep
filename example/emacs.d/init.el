@@ -128,3 +128,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(require 'erlang-yaemep-extra-erlang-menu-mode)
+
+
