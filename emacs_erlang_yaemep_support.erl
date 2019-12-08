@@ -4,7 +4,6 @@
 
 -spec erlang_project_dir(string()) -> string().
 erlang_project_dir(ErlangFilePath) ->
-
     DirPath = filename:dirname(ErlangFilePath),
     SplittedDirPath = filename:split(DirPath),
     FinderDown =

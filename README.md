@@ -18,8 +18,18 @@ extensions to erlang-mode:
   for Erlang projects (makes it possible to, e.g., go to the function
   under the cursor by pressing "M-.")
 
+Test YAEMEP in Emacs Without Installing
+---------------------------------------
+
+Run the following commands in a command prompt:
+
+```bash
+git clone https://github.com/kjellwinblad/yaemep.git
+./yaemep/example/emacs_with_erlang_and_yaemep.sh ~/my_fav_proj/my_fav_file.erl
+```
+
 Install
--------------
+-------
 
 1. Make sure erlang-mode is installed correctly:
    https://erlang.org/doc/apps/tools/erlang_mode_chapter.html
@@ -137,6 +147,7 @@ completion to work. Below is a list of special completions:
 * **Only local functions** -- Press the completion key when the
   cursor/point is just before the string "()".
 * **Only variables** -- Press the completion key when the cursor/point
+  is directly after an `@` character
 
 
 License
