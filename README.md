@@ -22,8 +22,7 @@ Quick Install
 1. Make sure erlang-mode is installed:
    https://erlang.org/doc/apps/tools/erlang_mode_chapter.html
 2. Download YAEMEP (e.g., by running `git clone https://github.com/kjellwinblad/yaemep.git`)
-3. Put the following in your Emacs init file:
-   ```
+3. Put the following in your Emacs init file:```
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; !!!IMPORTANT!!! Add yaemep to your Emacs load-path
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -111,9 +110,7 @@ Quick Install
 (require 'etags-table)
 (setq etags-table-search-up-depth 99)
 ;; -------------------------------------------------------
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-```
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;```
 4. Restart Emacs
 
 User Guide
