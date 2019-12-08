@@ -4,6 +4,7 @@
 
 -spec erlang_project_dir(string()) -> string().
 erlang_project_dir(ErlangFilePath) ->
+
     DirPath = filename:dirname(ErlangFilePath),
     SplittedDirPath = filename:split(DirPath),
     FinderDown =
@@ -63,18 +64,64 @@ erlang_project_dir(ErlangFilePath) ->
         Path -> Path
     end.
 
+%% Detect is a Erlang/OTP source code directory
+is_erlang_otp_src_dir(Dir) ->
+    filelib:is_dir(filename:join(Dir, "lib")) andalso
+        filelib:is_dir(filename:join(Dir, "erts")) andalso
+        lists:all(fun(Lib) ->
+                          filelib:is_dir(filename:join([Dir, "lib", Lib]))
+                  end, ["compiler", "kernel", "stdlib"]).
 
 -spec update_etags(string(),string(),string(),[string()]) -> ok.
 update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirectories) ->
-    ErlHrlFiles =
+    Dirs1 = [ProjectDir | AdditionalDirectories],
+    %% Include only the first Erlang/OTP directory
+    Dirs2 =
+        lists:reverse(
+          erlang:element(
+            2,
+            lists:foldl(
+              fun(Dir, {false, SoFar}) ->
+                      case is_erlang_otp_src_dir(Dir) of
+                          true -> {true, [Dir|SoFar]};
+                          false -> {false, [Dir|SoFar]}
+                      end;
+                 (Dir, {true, SoFar}) ->
+                      case is_erlang_otp_src_dir(Dir) of
+                          true -> {true, SoFar};
+                          false -> {true, [Dir|SoFar]}
+                      end
+              end,
+              {false, []},
+              Dirs1))),
+    ErlHrlFiles1 =
         lists:foldl(
           fun(Directory, SoFar) ->
                   filelib:wildcard(filename:join(Directory, SearchPattern)) ++ SoFar
           end,
           [],
-          [ProjectDir | AdditionalDirectories]),
+          Dirs2),
+    %% Ugly hack to filter out files under release/tests in otp folder
+    ErlHrlFiles2 =
+        case lists:search(fun (D) -> is_erlang_otp_src_dir(D) end, Dirs2) of
+            false ->
+                ErlHrlFiles1;
+            {value, OtpDir} ->
+                lists:filter(
+                 fun(Path) ->
+                         FilterOutPattern =
+                             filename:join([OtpDir, "release", "tests"]),
+                         case string:find(Path, FilterOutPattern)
+                         of
+                             nomatch -> true;
+                             M -> not (erlang:iolist_to_binary(M) =:=
+                                           erlang:iolist_to_binary(Path))
+                         end
+                 end,
+                 ErlHrlFiles1)
+            end,
     os:cmd(io_lib:format("etags -o ~s ~s",
-                         [TagsFileName, lists:join(" ", ErlHrlFiles)])),
+                         [TagsFileName, lists:join(" ", ErlHrlFiles2)])),
     ok.
 
 
@@ -498,8 +545,9 @@ wrapped_main(["update_etags", FileNameStr]) ->
 wrapped_main(["update_etags_project_dir",
               ProjectDir,
               TagsFileName,
-              SearchPattern]) ->
-    update_etags(ProjectDir, TagsFileName, SearchPattern);
+              SearchPattern|
+              AdditionalDirs]) ->
+    update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirs);
 wrapped_main(["update_completion_cache", CacheDir, FileNameStr]) ->
     erlang_project_update_cache(CacheDir,
                                 erlang_project_dir(FileNameStr),

@@ -19,39 +19,102 @@ extensions to erlang-mode:
 Quick Install
 -------------
 
-1. Make
+1. Make sure erlang-mode is installed:
+   https://erlang.org/doc/apps/tools/erlang_mode_chapter.html
 2. Download YAEMEP (e.g., by running `git clone https://github.com/kjellwinblad/yaemep.git`)
 3. Put the following in your Emacs init file:
-   
-           (add-to-list 'load-path "/path/to/yaemep")
-           (erlang-yaemep-install-all-extensions-with-default-settings)
-4. (Optional) Install and activate company-mode to get modern
-   in-buffer autocompletion:
-   1. Install company-mode using alternative 1 or 2:
-      * Alternative 1 (Ubuntu and Debian based systems) -- Run the
-        command:
-        
-                sudo apt-get install elpa-company
-      * Alternative 2 (Should work on all systems) -- Put the following
-        lines in your Emacs init file:
-        
-                (progn
-                  (require 'package)
-                  (package-initialize)
-                  (or (file-exists-p package-user-dir)
-                      (package-refresh-contents))
-                  (unless (package-installed-p 'company)
-                    (package-install 'company)))
-   2. Make sure that company-mode is activated when erlang-mode is
-      loaded by putting the following in your Emacs init file:
-      
-              (add-hook 'erlang-mode-hook
-                (lambda ()
-                  (require 'company)
-                  (local-set-key (kbd "M-SPC") 'company-complete)
-                  ;; (company-idle-delay nil) ;; Uncomment to disable automatic completion
-                  (company-mode)))
-3. Restart Emacs
+   ```
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; !!!IMPORTANT!!! Add yaemep to your Emacs load-path
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(add-to-list
+ 'load-path
+ (or (and (boundp 'erlang-mode-path) erlang-mode-path)
+     "/the/path/to/your/yaemep/"))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Install erlang-yaemep-completion-mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(require 'erlang-yaemep-completion-mode)
+;; (Completion command can be invoked with "M-TAB")
+;;
+;; --------------------------------------------------------
+;; (Optional but Recommended) Load company-mode when erlang- mode has
+;; loaded if company mode is installed (will give you fancy in buffer
+;; completions):
+;; --------------------------------------------------------
+(if (fboundp 'company-mode)
+    (add-hook 'erlang-mode-hook 'company-mode))
+;;
+;; --------------------------------------------------------
+;; (Optional But Recomended) Install and load company-mode
+;; --------------------------------------------------------
+;;
+;; Not necessary if you have installed company-mode on Ubunu or Debian
+;; with:
+;;
+;; sudo apt-get install elpa-company
+;;
+(progn
+  (require 'package)
+  (package-initialize)
+  (or (file-exists-p package-user-dir)
+      (package-refresh-contents))
+  (unless (package-installed-p 'company)
+    (package-install 'company)))
+;; --------------------------------------------------------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Install erlang-yaemep-etags-auto-gen-mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(require 'erlang-yaemep-etags-auto-gen-mode)
+;; (Use "M-." to go to thing at point and "M-, to go back")
+;;
+;; Use the following variable to add extra directories to include in
+;; the TAGS file for the project. Erlang/OTP source code directories
+;; in this list will be ignored if the project directory is an
+;; Erlang/OTP source code directory. Non-existing directories will
+;; also be ignored. The directory "release/tests" will be ignored
+;; inside Erlang/OTP source code directories.
+(setq erlang-yaemep-etags-auto-gen-extra-dirs (list "/home/user/src/otp/"))
+;; Change the following variable if you want to include other types of
+;; files in your TAGS file.
+(setq erlang-yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}")
+;; You may want to activate erlang-yaemep-etags-auto-gen-mode in other
+;; major modes if you changed the
+;; erlang-yaemep-etags-auto-gen-search-pattern variable above.
+;;
+;; For example:
+;;
+;;(add-hook 'c-mode 'erlang-yaemep-etags-auto-gen-mode)
+;;
+;; -------------------------------------------------------
+;; (Optional but Recomended) Load etags file automatically after it
+;; has got updated
+;; -------------------------------------------------------
+;;
+;; The etags-table.el is in the yaemep folder for your convenience.
+;;
+;; See https://www.emacswiki.org/emacs/EtagsTable for more information
+;; about etags-table
+;;
+;; -------------------------------------------------------
+(setq tags-revert-without-query 1)
+(add-to-list 'load-path
+             (concat (file-name-directory
+                       (locate-file "yaemep.el" load-path))
+                     "etags-table"))
+(require 'etags-table)
+(setq etags-table-search-up-depth 99)
+;; -------------------------------------------------------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+```
+4. Restart Emacs
 
 User Guide
 ----------

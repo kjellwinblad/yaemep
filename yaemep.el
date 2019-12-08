@@ -92,11 +92,27 @@ current buffer is located."
                                       (expand-file-name (buffer-file-name)))
                                 "the erlang-yaemep-project-dir function")))
 
+(defvar erlang-yaemep-etags-auto-gen-extra-dirs nil
+  "erlang-yaemep-etags-auto-gen-mode will generate a TAGS file
+  with tags for the files in the project directory (see
+  erlang-yaemep-project-dir) and the files that are stored in the
+  direcories whose paths are stored in the list that this
+  variable holds. Any paths to Erlang/OTP source code directories
+  in this list will be ignored if the project directory is an
+  Erlang/OTP source code directory.")
+
+(defvar erlang-yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}"
+  "erlang-yaemep-etags-auto-gen-mode will use this search pattern
+  to find files to generate tags for. See the Erlang
+  documentation for the function filelib:wildcard/1 for the
+  syntax of search patterns")
+
 (defun erlang-yaemep-project-etags-update (&optional
-                                    project-root
-                                    output-tags-file
-                                    search-pattern
-                                    async)
+                                           project-root
+                                           output-tags-file
+                                           search-pattern
+                                           extra-directories
+                                           async)
   "Runs the etags command with all the files ending with .erl and
 .hrl that are located under the PROJECT-ROOT directory. The
 resulting tags file will be stored in the file with the path
@@ -132,15 +148,17 @@ OUTPUT-TAGS-FILE."
    ((erlang-yaemep-check-support-escript "the erlang-yaemep-project-etags-update-visit-interactive function")
     (erlang-yaemep-support-escript-exec
      async
-     (list "update_etags_project_dir"
-           (expand-file-name (or project-root (erlang-yaemep-project-dir)))
-           (expand-file-name
-            (let ((actual-output-tags-file
-                   (or output-tags-file (erlang-yaemep-project-dir))))
-              (if (file-directory-p actual-output-tags-file)
-                  (concat (file-name-as-directory actual-output-tags-file) "TAGS")
-                actual-output-tags-file)))
-           (or search-pattern "**/*.{erl,hrl}")))
+     (append
+      (list "update_etags_project_dir"
+            (expand-file-name (or project-root (erlang-yaemep-project-dir)))
+            (expand-file-name
+             (let ((actual-output-tags-file
+                    (or output-tags-file (erlang-yaemep-project-dir))))
+               (if (file-directory-p actual-output-tags-file)
+                   (concat (file-name-as-directory actual-output-tags-file) "TAGS")
+                 actual-output-tags-file)))
+            (or search-pattern erlang-yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}"))
+      (mapcar 'expand-file-name (or extra-directories erlang-yaemep-etags-auto-gen-extra-dirs))))
     (if (called-interactively-p)
         (progn
           (visit-tags-table (erlang-yaemep-project-dir))
@@ -149,20 +167,22 @@ OUTPUT-TAGS-FILE."
     nil)))
 
 (defun erlang-yaemep-project-etags-update-in-background (&optional
-                                                  search-pattern
-                                                  extra-directories
-                                                  project-root
-                                                  output-tags-file)
+                                                         search-pattern
+                                                         extra-directories
+                                                         project-root
+                                                         output-tags-file)
   "Run the etags command in the background on all files with the
 .erl and .hrl ending that are inside the project directory
 returned by the function erlang-yaemep-project-dir. See the
 documentation of the Emacs lisp function erlang-yaemep-project-dir and
 the etags command for more information."
   (interactive)
-  (erlang-yaemep-project-etags-update project-root
-                               output-tags-file
-                               search-pattern
-                               t))
+  (erlang-yaemep-project-etags-update
+   project-root
+   output-tags-file
+   search-pattern
+   extra-directories
+   t))
 
 
 (defun erlang-yaemep-tags-help ()
@@ -274,10 +294,11 @@ init file (note that the path in the code below needs to be
   "Update the Erlang completion cache for the project in the background"
   (interactive)
   (erlang-yaemep-support-escript-exec
-   nil
+   t
    (list "update_completion_cache"
          (erlang-yaemep-completion-cache-dir)
-         (expand-file-name (buffer-file-name)))))
+         (expand-file-name (buffer-file-name))))
+  (setq erlang-yaemep-completion-at-point-cache nil))
 
 (defvar-local erlang-yaemep-completion-at-point-enabled nil)
 
