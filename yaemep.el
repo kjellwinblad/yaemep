@@ -1,6 +1,7 @@
-;;; erlang.el --- Major modes for editing and running Erlang -*- lexical-binding: t; -*-
+;;;  -*- lexical-binding: t; -*-
 
 (require 'thingatpt)
+(require 'erlang)
 
 (defvar erlang-yaemep-get-support-escript-path-cache nil)
 
@@ -20,7 +21,10 @@
 
 (defvar erlang-yaemep-check-support-escript-cache nil)
 
-(defun erlang-yaemep-check-support-escript (&optional functionaliy-name)
+(defvar erlang-yaemep-check-support-escript-check-message-functions
+  "")
+
+(defun erlang-yaemep-check-support-escript (functionaliy-name &optional always-print-message)
   "Returns t if the erlang-yaemep-mode support escript can be executed.
   Prints a warning message and returns nil if erlang-yaemep-mode support
   escript cannot be executed."
@@ -36,15 +40,27 @@
                     (erlang-yaemep-get-support-escript-path)
                     "check")
                    (buffer-string))))))
-        (if (not escript-ok)
-            (message "%s%s%s%s"
-                     "Cannot execute \"escript %s check\" (%s will not work). "
-                     "Please check that the escript program is in your path and "
-                     "that it is compatible with the"
-                     "erlang-yaemep-mode version."
-                     (erlang-yaemep-get-support-escript-path)
-                     (or functionaliy-name "the currently executing function"))
-          (setq erlang-yaemep-check-support-escript-cache escript-ok)))))
+        (if (and (not escript-ok)
+                 (or always-print-message
+                     (not (string-match-p
+                           (regexp-quote functionaliy-name)
+                           erlang-yaemep-check-support-escript-check-message-functions))))
+            (progn
+              (if (not (string-match-p
+                           (regexp-quote functionaliy-name)
+                           erlang-yaemep-check-support-escript-check-message-functions))
+                  (setq erlang-yaemep-check-support-escript-check-message-functions
+                        (concat erlang-yaemep-check-support-escript-check-message-functions
+                                functionaliy-name)))
+              (message (concat
+                        "Cannot execute \"escript %s check\" (%s will not work). "
+                        "Please check that the escript program is in your path and "
+                        "that it is compatible with the "
+                        "erlang-yaemep-mode version. "
+                        (if always-print-message "" "This message will only be displayed once."))
+                       (erlang-yaemep-get-support-escript-path)
+                       (or functionaliy-name "the currently executing function"))))
+        (setq erlang-yaemep-check-support-escript-cache escript-ok))))
 
 (defun erlang-yaemep-support-escript-exec (async parameter-list &optional functionaliy-name)
   "Executes the erlang-yaemep-mode support escript with the elements in
@@ -52,7 +68,9 @@
   the text that the script printed to standard output, if ASYNC
   is nil. The function will return directly with the empty string
   as return value if ASYNC is t."
-  (if (not (erlang-yaemep-check-support-escript functionaliy-name))
+  (if (not (erlang-yaemep-check-support-escript
+            (or functionaliy-name
+                "the erlang-yaemep-support-escript-exec function")))
       ""
     (with-temp-buffer
       (progn
@@ -145,7 +163,7 @@ OUTPUT-TAGS-FILE."
       ;; Don't run asyncroniusly when executed interactively
       nil)))
   (cond
-   ((erlang-yaemep-check-support-escript "the erlang-yaemep-project-etags-update-visit-interactive function")
+   ((erlang-yaemep-check-support-escript "the erlang-yaemep-project-etags-update-visit-interactive function" (not async))
     (erlang-yaemep-support-escript-exec
      async
      (append
