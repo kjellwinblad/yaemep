@@ -22,6 +22,17 @@
 
 (add-hook 'erlang-mode-hook 'erlang-yaemep-extra-erlang-menu-mode)
 
+
+(defun erlang-yaemep-rebar3-compile-project ()
+  (interactive)
+  (compile (format "cd \"%s\" && rebar3 compile" (erlang-yaemep-project-dir))))
+
+(defun erlang-yaemep-make-project ()
+  (interactive)
+  (compile (format "cd \"%s\" && make" (erlang-yaemep-project-dir))))
+
+
+
 (defun erlang-yaemep-extra-erlang-menu-mode-toggle ()
   (if erlang-yaemep-extra-erlang-menu-mode
       (progn
@@ -29,18 +40,53 @@
         (define-key-after
           global-map
           [menu-bar yaemep-menu]
-          (cons "Erlang YAEMEP" (make-sparse-keymap "???"))
+          (cons "Erlang YAEMEP" (make-sparse-keymap "Erlang YAEMEP"))
           'tools )
 
         (define-key
           global-map
+          [menu-bar yaemep-menu yaemep-rebar3-compile]
+          '("Project: rebar3 compile" . erlang-yaemep-rebar3-compile-project))
+
+        (define-key
+          global-map
+          [menu-bar yaemep-menu yaemep-rebar3-compile]
+          '("Project: rebar3 compile" . erlang-yaemep-rebar3-compile-project))
+
+        (define-key
+          global-map
+          [menu-bar yaemep-menu yaemep-make]
+          '("Project: make" . erlang-yaemep-make-project))
+
+        (define-key
+          global-map
+          [menu-bar yaemep-menu sep3]
+          '(menu-item "--"))
+
+        (define-key
+          global-map
+          [menu-bar yaemep-menu yaemep-normal-complete]
+          '("Completion At Point" . completion-at-point))
+
+        (define-key
+          global-map
           [menu-bar yaemep-menu yaemep-complete]
-          '("Complete Thing At Point" . erlang-yaemep-company-complete-or-completion-at-point))
+          '("YAMEP Completion At Point" . erlang-yaemep-company-complete-or-completion-at-point))
+
+        (define-key
+          global-map
+          [menu-bar yaemep-menu sep1]
+          '(menu-item "--"))
 
         (define-key
           global-map
           [menu-bar yaemep-menu yamep-generate-etags]
           '("Generate TAGS for Project" . erlang-yaemep-project-etags-update))
+
+        (define-key
+          global-map
+          [menu-bar yaemep-menu sep2]
+          '(menu-item "--"))
 
         (define-key
           global-map
