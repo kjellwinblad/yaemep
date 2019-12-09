@@ -63,7 +63,42 @@ erlang_project_dir(ErlangFilePath) ->
         Path -> Path
     end.
 
-%% Detect is a Erlang/OTP source code directory
+%% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+%% Code to run command with argument that may have spaces in them.
+%%
+%% Modified version of code copied from user me2's answer to
+%% stackoberflow.com question (accessed: 2019-12-09):
+%%
+%% From https://stackoverflow.com/questions/2231061/is-there-an-erlang-oscmd-equivalent-that-takes-a-list-of-strings-instead-of-a-s
+%%
+%% Licence CC BY-SA https://creativecommons.org/licenses/by-sa/2.0/
+%% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+my_cmd(Cmd, Args) ->
+    Tag = make_ref(),
+    {Pid, Ref} = erlang:spawn_monitor(fun() ->
+            Rv = cmd_sync(Cmd, Args),
+            exit({Tag, Rv})
+        end),
+    receive
+        {'DOWN', Ref, process, Pid, {Tag, Data}} -> Data;
+        {'DOWN', Ref, process, Pid, Reason} -> exit(Reason)
+    end.
+
+cmd_sync(Cmd, Args) ->
+    P = open_port({spawn_executable, os:find_executable(Cmd)}, [
+            binary, use_stdio, stream, eof, {args, Args}]),
+    cmd_receive(P, []).
+
+cmd_receive(Port, Acc) ->
+    receive
+        {Port, {data, Data}} -> cmd_receive(Port, [Data|Acc]);
+        {Port, eof}          -> {ok, lists:reverse(Acc)}
+    end.
+%% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%% End of code to run command with argument that may have spaces in them.
+%% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+%% Detect if Dir is a Erlang/OTP source code directory
 is_erlang_otp_src_dir(Dir) ->
     filelib:is_dir(filename:join(Dir, "lib")) andalso
         filelib:is_dir(filename:join(Dir, "erts")) andalso
@@ -119,8 +154,7 @@ update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirectories) ->
                  end,
                  ErlHrlFiles1)
             end,
-    os:cmd(io_lib:format("etags -o ~s ~s",
-                         [TagsFileName, lists:join(" ", ErlHrlFiles2)])),
+    my_cmd("etags", ["-o", TagsFileName | ErlHrlFiles2]),
     ok.
 
 
@@ -173,6 +207,9 @@ erlang_project_add_project_lib_dirs_to_path_from_cache(CacheDir, ProjectDir) ->
     ok.
 
 
+erlang_project_all_erl_files(ProjectDir) ->
+    filelib:wildcard(filename:join(ProjectDir, "**/*.erl")).
+
 -spec erlang_project_all_modules(string()) -> [string()].
 erlang_project_all_modules(ProjectDir) ->
     erlang_project_add_project_lib_dirs_to_path(ProjectDir),
@@ -183,7 +220,7 @@ erlang_project_all_modules(ProjectDir) ->
     ErlSet =
         sets:from_list(
           [filename:rootname(filename:basename(F))
-           || F <- filelib:wildcard(filename:join(ProjectDir, "**/*.erl")),
+           || F <- erlang_project_all_erl_files(ProjectDir),
               case re:run(filename:basename(F), "^[A-Za-z]") of
                   {match, _} -> true;
                   _ -> false
@@ -201,6 +238,11 @@ erlang_project_cache_dir(CacheDir, ProjectDir) ->
 erlang_project_all_modules_cache_file(CacheDir, ProjectDir) ->
     ProjectCacheDir = erlang_project_cache_dir(CacheDir, ProjectDir),
     filename:join(ProjectCacheDir, "all_modules.txt").
+
+-spec erlang_project_all_erl_files_cache_file(string(), string()) -> string().
+erlang_project_all_erl_files_cache_file(CacheDir, ProjectDir) ->
+    ProjectCacheDir = erlang_project_cache_dir(CacheDir, ProjectDir),
+    filename:join(ProjectCacheDir, "all_erl_files.txt").
 
 
 -spec erlang_project_libs_parameter_cache_file(string(), string()) -> string().
@@ -238,6 +280,12 @@ erlang_project_update_cache(CacheDir, ProjectDir, FileNameStr) ->
     filelib:ensure_dir(AllModulesFile),
     file:write_file(AllModulesFile,
                     lists:join(";", erlang_project_all_modules(ProjectDir))),
+    %%
+    AllErlFilesFile =
+        erlang_project_all_erl_files_cache_file(CacheDir, ProjectDir),
+    file:write_file(AllErlFilesFile,
+                    lists:join(";", erlang_project_all_erl_files(ProjectDir))),
+    %%
     LibsParamCacheFile =
         erlang_project_libs_parameter_cache_file(CacheDir, ProjectDir),
     file:write_file(LibsParamCacheFile,
@@ -279,44 +327,65 @@ mk_empty_parameter_list_string(Arity) ->
                                     [io_lib:format("A~p", [A])
                                      || A <- lists:seq(1, Arity)]) ++ ")").
 
+list_functions_in_module_from_erl_file(ErlFile) ->
+    {ok, BinStr} = file:read_file(ErlFile),
+    {ok, RE} =
+        re:compile("^[ \t\n]*-export[ \t\n]*\\([ \t\n]*\\[[ \t\n]*((?:(?:[a-zA-Z_0-9]+)/(?:[0-9]+)[\n]?[ \t\n]*,?[ \t\n]*)+)[ \t\n]*\\][ \t\n]*\\)[ \t\n]*\.",
+                   [multiline, unicode]),
+    case re:run(BinStr, RE, [global]) of
+        {match, MatchList} ->
+            MatchList2 = [erlang:hd(erlang:tl(M)) || M <- MatchList],
+            MatchList3 = [binary:part(BinStr, Start, Length)
+                          || {Start, Length} <- MatchList2],
+            MatchList4 =
+                lists:foldl(
+                  fun(E, SoFar) ->
+                          string:split(E, ",", all) ++ SoFar
+                  end, [], MatchList3),
+            MatchList5 =
+                [(fun(S) ->
+                          case string:split(S, "/") of
+                              [Name,Arity] ->
+                                  {string:trim(Name),
+                                   erlang:element(1,
+                                                  string:to_integer(Arity))};
+                              _ -> {"none", 0}
+                          end
+                  end)(Str) || Str <- MatchList4],
+            MatchList5;
+        _ -> []
+    end.
 
-list_functions_in_module_from_erl_file(_CacheDir,
+
+list_functions_in_module_from_erl_file(CacheDir,
                                        ProjectDir,
                                        ModuleNameStr) ->
-    ErlFiles =
-        filelib:wildcard(filename:join(ProjectDir,
-                                       io_lib:format("**/~s.erl",
-                                                     [ModuleNameStr]))),
-    case ErlFiles of
-        [ErlFile|_] ->
-            {ok, BinStr} = file:read_file(ErlFile),
-            {ok, RE} =
-                re:compile("^[ \t\n]*-export[ \t\n]*\\([ \t\n]*\\[[ \t\n]*((?:(?:[a-zA-Z_0-9]+)/(?:[0-9]+)[\n]?[ \t\n]*,?[ \t\n]*)+)[ \t\n]*\\][ \t\n]*\\)[ \t\n]*\.",
-                           [multiline, unicode]),
-            case re:run(BinStr, RE, [global]) of
-                {match, MatchList} ->
-                    MatchList2 = [erlang:hd(erlang:tl(M)) || M <- MatchList],
-                    MatchList3 = [binary:part(BinStr, Start, Length)
-                                  || {Start, Length} <- MatchList2],
-                    MatchList4 =
-                        lists:foldl(
-                          fun(E, SoFar) ->
-                                  string:split(E, ",", all) ++ SoFar
-                          end, [], MatchList3),
-                    MatchList5 =
-                        [(fun(S) ->
-                                  case string:split(S, "/") of
-                                      [Name,Arity] ->
-                                          {string:trim(Name),
-                                           erlang:element(1,
-                                                          string:to_integer(Arity))};
-                                      _ -> {"none", 0}
-                                  end
-                          end)(Str) || Str <- MatchList4],
-                    MatchList5;
+    try
+        CacheFile =
+            erlang_project_all_erl_files_cache_file(CacheDir, ProjectDir),
+        {ok, BinStr} = file:read_file(CacheFile),
+        Paths = string:split(BinStr, ";"),
+        ErlFileName = erlang:iolist_to_binary([ModuleNameStr, ".erl"]),
+        case lists:search(
+               fun(Path) ->
+                       ErlFileName =:=
+                           erlang:iolist_to_binary(filename:basename(Path))
+               end ,
+               Paths) of
+            {value, PathToOurErlFile} ->
+                list_functions_in_module_from_erl_file(PathToOurErlFile)
+        end
+    catch
+        _:_ ->
+            ErlFiles =
+                filelib:wildcard(filename:join(ProjectDir,
+                                               io_lib:format("**/~s.erl",
+                                                             [ModuleNameStr]))),
+            case ErlFiles of
+                [ErlFile|_] ->
+                    list_functions_in_module_from_erl_file(ErlFile);
                 _ -> []
-            end;
-        _ -> []
+            end
     end.
 
 
@@ -442,15 +511,19 @@ list_functions_in_erl_file(FileNameStr) ->
 
 -spec list_functions_in_erl_file_from_cache(string(), string()) -> [string()].
 list_functions_in_erl_file_from_cache(CacheDir, FileNameStr) ->
-    ProjectDir = erlang_project_dir(FileNameStr),
-    FunsInErlFileCacheFile =
-        functions_in_erl_file_cache_file(CacheDir, ProjectDir, FileNameStr),
-    case filelib:is_file(FunsInErlFileCacheFile) of
-        true ->
-            {ok, [FunctionList]} = file:consult(FunsInErlFileCacheFile),
-            FunctionList;
-        false ->
-            list_functions_in_erl_file(FileNameStr)
+    try
+        ProjectDir = erlang_project_dir(FileNameStr),
+        FunsInErlFileCacheFile =
+            functions_in_erl_file_cache_file(CacheDir, ProjectDir, FileNameStr),
+        case filelib:is_file(FunsInErlFileCacheFile) of
+            true ->
+                {ok, [FunctionList]} = file:consult(FunsInErlFileCacheFile),
+                FunctionList;
+            false ->
+                list_functions_in_erl_file(FileNameStr)
+        end
+    catch
+        _:_ -> list_functions_in_erl_file(FileNameStr)
     end.
 
 -spec remove_irrelevant_scopes(string()) -> string().
@@ -604,15 +677,15 @@ main(List) ->
             try
                 case List of
                     [_, CacheDir|_]  ->
-                        ErrlorLogFile =
+                        ErrorLogFile =
                             filename:join(CacheDir, "error_log.txt"),
                         PrevErrLog =
-                            case file:read_file(ErrlorLogFile) of
+                            case file:read_file(ErrorLogFile) of
                                 {ok, Binary} -> Binary;
                                 _ -> <<"">>
                             end,
-                        filelib:ensure_dir(CacheDir),
-                        file:write_file(ErrlorLogFile,
+                        filelib:ensure_dir(ErrorLogFile),
+                        file:write_file(ErrorLogFile,
                                         [PrevErrLog, "\n",
                                          io_lib:format("~tp.~n", [Term])],
                                         [append]);
@@ -623,6 +696,3 @@ main(List) ->
             end
 
     end.
-
-
-
