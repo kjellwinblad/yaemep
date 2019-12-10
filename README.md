@@ -35,76 +35,21 @@ Install
    the correct path):
 
    ```elisp
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   ;; !!!IMPORTANT: Needs change!!! Add yaemep to your Emacs load-path
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   (add-to-list
-    'load-path
-        "/the/path/to/your/yaemep/")
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;; (The line below needs to be changed!) Add YAMEP to your Emacs load-path
+   (add-to-list 'load-path (or (and (boundp 'yaemep-path) yaemep-path) "/the/path/to/your/yaemep/"))
 
-
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;; Install yaemep-completion-mode
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   (require 'yaemep-completion-mode)
    ;; (Completion command can be invoked with "M-TAB")
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   (require 'yaemep-completion-mode)
 
-
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;; Install yaemep-etags-auto-gen-mode
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   (require 'yaemep-etags-auto-gen-mode)
    ;; (Use "M-." to go to thing at point and "M-," to go back")
-   ;;
-   ;; Use the following variable to add extra directories to include in
-   ;; the TAGS file for your project. Erlang/OTP source code directories
-   ;; in this list will be ignored if the project directory is an
-   ;; Erlang/OTP source code directory. Non-existing directories will
-   ;; also be ignored. The directory "release/tests" will be ignored
-   ;; inside Erlang/OTP source code directories.
-   (setq yaemep-etags-auto-gen-extra-dirs (list "/home/user/src/otp/"))
-   ;; Change the following variable if you want to include other types of
-   ;; files in your TAGS file.
-   (setq yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}")
-   ;; You may want to activate yaemep-etags-auto-gen-mode in other
-   ;; major modes if you changed the
-   ;; yaemep-etags-auto-gen-search-pattern variable above.
-   ;;
-   ;; For example:
-   ;;
-   ;;(add-hook 'c-mode 'yaemep-etags-auto-gen-mode)
-   ;;
-   ;; -------------------------------------------------------
-   ;; (Optional but Recommended) Load etags file automatically after it
-   ;; has got updated
-   ;; -------------------------------------------------------
-   ;;
-   ;; The etags-table/etags-table.el is in the yaemep folder for your
-   ;; convenience.
-   ;;
-   ;; See https://www.emacswiki.org/emacs/EtagsTable for more information
-   ;; about etags-table
-   ;;
-   (setq tags-revert-without-query 1)
-   (add-to-list 'load-path
-                (concat (file-name-directory
-                          (locate-file "yaemep.el" load-path))
-                        "etags-table"))
-   (require 'etags-table)
-   (setq etags-table-search-up-depth 99)
-   ;; -------------------------------------------------------
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   (require 'yaemep-etags-auto-gen-mode)
 
-
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;; Install yaemep-extra-erlang-menu-mode
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    (require 'yaemep-extra-erlang-menu-mode)
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ```
-5. (Optional) Install and activate company-mode to get modern
+5. (**Optional**) Install and activate company-mode to get modern
    in-buffer autocompletion:
    1. Install [company-mode](https://company-mode.github.io/), for
       example, using one of the two alternatives below:
@@ -130,11 +75,58 @@ Install
         ```
    2. Make sure that company-mode is activated when erlang-mode is
       loaded by putting the following in your Emacs init file:
-      
+
       ```elisp
       (add-hook 'erlang-mode-hook 'company-mode)
       ```
-6. Restart Emacs
+6. (**Optional**) Configure yaemep-etags-auto-gen-mode by putting the
+   code below somewhere after `(require 'yaemep-etags-auto-gen-mode)`
+   in your Emacs init file and change the variables to fit your setup:
+
+   ```elisp
+   ;; Use the following variable to add extra directories to include in
+   ;; the TAGS file for your project. Erlang/OTP source code directories
+   ;; in this list will be ignored if the project directory is an
+   ;; Erlang/OTP source code directory. Non-existing directories will
+   ;; also be ignored. The directory "release/tests" will be ignored
+   ;; inside Erlang/OTP source code directories.
+
+   (setq yaemep-etags-auto-gen-extra-dirs (list "/home/user/src/otp/"))
+
+   ;; Change the following variable if you want to include other types of
+   ;; files in your TAGS file.
+
+   (setq yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}")
+
+   ;; You may want to activate yaemep-etags-auto-gen-mode in other
+   ;; major modes if you changed the
+   ;; yaemep-etags-auto-gen-search-pattern variable above.
+   ;;
+   ;; For example:
+   ;;
+   ;; (add-hook 'c-mode 'yaemep-etags-auto-gen-mode)
+   ```
+7. (**Optional**) Load etags TAGS file automatically after it has got
+   updated:
+   ```elisp
+   ;; Load etags file automatically after it
+   ;; has got updated:
+   ;;
+   ;; The etags-table/etags-table.el is in the yaemep folder for your
+   ;; convenience.
+   ;;
+   ;; See https://www.emacswiki.org/emacs/EtagsTable for more information
+   ;; about etags-table
+   ;;
+   (setq tags-revert-without-query 1)
+   (add-to-list 'load-path
+                (concat (file-name-directory
+                          (locate-file "yaemep.el" load-path))
+                        "etags-table"))
+   (require 'etags-table)
+   (setq etags-table-search-up-depth 99)
+   ```
+8. Restart Emacs
 
 
 Test YAEMEP in Emacs Without Installing
