@@ -140,7 +140,7 @@ Run the following commands in a command prompt:
 
 ```bash
 git clone https://github.com/kjellwinblad/yaemep.git
-./yaemep/example/emacs_with_erlang_and_yaemep.sh ~/my_fav_proj/my_fav_file.erl
+./yaemep/example/emacs_with_erlang_and_yaemep.sh
 ```
 
 
