@@ -12,8 +12,18 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 
 ERLANG_VERSION=20191023.843
-ERLANG_SHA512="74298ff9e9175fc4972354268773915bb6206ce442aa49f93e01c72c77cfa8d7052599c94ae7c32980e06d1351aac42541fbd411daa2e8b05836b2826b5b4f21"
+ERLANG_SHA512="796b3e66db1477614d3fdfc900fc1df288f32e8092d8cafc7d9c7950c40af255612d2b18b79b45d85ef317a67cd12251390b14e776ea0316344e76b7f8d778fc"
 
+
+ACTUAL_HASH=`(cd "$DIR/emacs.d/erlang" && ls | LC_ALL=C sort  | xargs -n 1 cat | sha512sum | head -n1 | awk '{print $1;}')`
+
+if ! (test "$ACTUAL_HASH" = "$ERLANG_SHA512")
+then
+    if test -d "$DIR/emacs.d/erlang"
+    then
+        rm -rf "$DIR/emacs.d/erlang"
+    fi
+fi
 
 if ! test -d "$DIR/emacs.d/erlang"
 then
@@ -23,8 +33,7 @@ then
     (cd "$DIR/emacs.d" && cp -r "erlang-$ERLANG_VERSION" erlang)
 fi
 
-ACTUAL_HASH=`find "$DIR/emacs.d/erlang" -type f -print0 | sort -z | xargs -0 cat | sha512sum | head -n1 | awk '{print $1;}'`
-
+ACTUAL_HASH=`(cd "$DIR/emacs.d/erlang" && ls | LC_ALL=C sort  | xargs -n 1 cat | sha512sum | head -n1 | awk '{print $1;}')`
 
 if ! (test "$ACTUAL_HASH" = "$ERLANG_SHA512")
 then
