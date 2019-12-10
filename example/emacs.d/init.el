@@ -115,13 +115,10 @@
     (or (file-exists-p package-user-dir)
         (package-refresh-contents))
     (package-install 'company)))
-;; --------------------------------------------------------
 
-
-;; --------------------------------------------------------
-;;(Optional but Recommended) Load company-mode when erlang-mode has
+;; Load company-mode when erlang-mode has
 ;; loaded (will give you fancy in-buffer completions if company-mode
 ;; is installed):
-;; --------------------------------------------------------
+
 (add-hook 'erlang-mode-hook 'company-mode)
 ;; --------------------------------------------------------

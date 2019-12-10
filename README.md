@@ -35,8 +35,8 @@ Install
    the correct path):
 
    ```elisp
-   ;; (The line below needs to be changed!) Add YAMEP to your Emacs load-path
-   (add-to-list 'load-path (or (and (boundp 'yaemep-path) yaemep-path) "/the/path/to/your/yaemep/"))
+   ;; (The line below needs to be changed!) Add YAMEP to your Emacs load-path:
+   (add-to-list 'load-path "/the/path/to/your/yaemep/")
 
    ;; Install yaemep-completion-mode
    ;; (Completion command can be invoked with "M-TAB")
@@ -109,9 +109,6 @@ Install
 7. (**Optional**) Load etags TAGS file automatically after it has got
    updated:
    ```elisp
-   ;; Load etags file automatically after it
-   ;; has got updated:
-   ;;
    ;; The etags-table/etags-table.el is in the yaemep folder for your
    ;; convenience.
    ;;
@@ -199,7 +196,7 @@ described above, the folder where the file that is associated with the
 current buffer is stored will be used as the project root. Finally,
 you can force YAMEP to use a particular folder by placing a file
 called ".emacs_erlang_mode_project" in the root of your project. You
-can type \"M-x yaemep-project-dir\" to check which directory YAMEP
+can type "M-x yaemep-project-dir" to check which directory YAMEP
 will use as the project directory.
 
 License
