@@ -182,9 +182,9 @@ variables. Here is a list of useful shortcuts:
 * **C-,** Go back to original place after you have executed "go to
   function under point"
 
-### Go to Function at Point etc with `yaemep-etags-auto-gen-mode`
+### Menu with `yaemep-extra-erlang-menu-mode`
 
-The Emacs minor-mode `yaemep-etags-auto-gen-mode` will add a menu to
+The Emacs minor-mode `yaemep-extra-erlang-menu-mode` will add a menu to
 the top menu bar in Emacs with the title "Erlang YAMEP". This menu
 contains useful shortcuts and key-combinations that can be used to
 trigger them.
