@@ -26,10 +26,10 @@ Install
 1. Make sure that your system has a working `escript` program
    installed (see the [Erlang/OTP installation
    instructions](http://erlang.org/doc/installation_guide/INSTALL.html))
-1. Make sure erlang-mode is installed correctly:
+2. Make sure erlang-mode is installed correctly:
    https://erlang.org/doc/apps/tools/erlang_mode_chapter.html
-2. Download YAEMEP (e.g., by running `git clone https://github.com/kjellwinblad/yaemep.git`)
-3. Put the following in your [Emacs init
+3. Download YAEMEP (e.g., by running `git clone https://github.com/kjellwinblad/yaemep.git`)
+4. Put the following in your [Emacs init
    file](https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html)
    (note that "/the/path/to/your/yaemep/" needs to be replaced with
    the correct path):
@@ -130,8 +130,7 @@ Install
    (require 'yaemep-extra-erlang-menu-mode)
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ```
-3. Comment out what you do not want in the above
-4. Restart Emacs
+5. Restart Emacs
 
 
 Test YAEMEP in Emacs Without Installing
