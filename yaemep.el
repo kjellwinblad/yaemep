@@ -349,7 +349,7 @@ init file (note that the path in the code below needs to be
   (let* ((case-fold-search nil)
          (check-complete-regexp
           (lambda (complete-regexp num-of-char-forward)
-            (when (and (save-mark-and-excursion
+            (when (and (save-excursion
                         (forward-char num-of-char-forward)
                         (re-search-backward complete-regexp nil t 1))
                        (match-string-no-properties 1)
