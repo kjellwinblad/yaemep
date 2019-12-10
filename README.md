@@ -49,32 +49,6 @@ Install
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    (require 'yaemep-completion-mode)
    ;; (Completion command can be invoked with "M-TAB")
-   ;;
-   ;; --------------------------------------------------------
-   ;;(Optional but Recommended) Load company-mode when erlang-mode has
-   ;; loaded (will give you fancy in-buffer completions if company-mode
-   ;; is installed):
-   ;; --------------------------------------------------------
-   (add-hook 'erlang-mode-hook 'company-mode)
-   ;; --------------------------------------------------------
-   ;;
-   ;; --------------------------------------------------------
-   ;; (Optional But Recomended) Install company-mode
-   ;; --------------------------------------------------------
-   ;;
-   ;; Not necessary if you have installed company-mode on Ubunu or Debian
-   ;; with:
-   ;;
-   ;; sudo apt-get install elpa-company
-   ;;
-   (progn
-     (require 'package)
-     (package-initialize)
-     (or (file-exists-p package-user-dir)
-         (package-refresh-contents))
-     (unless (package-installed-p 'company)
-       (package-install 'company)))
-   ;; --------------------------------------------------------
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -130,7 +104,36 @@ Install
    (require 'yaemep-extra-erlang-menu-mode)
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ```
-5. Restart Emacs
+5. (Optional) Install and activate company-mode to get modern
+   in-buffer autocompletion:
+   1. Install company-mode using alternative 1 or 2:
+      * Alternative 1 (Ubuntu and Debian based systems) -- Run the
+        command:
+        
+                sudo apt-get install elpa-company
+      * Alternative 2 (Should work on all systems) -- Put the following
+        lines in your Emacs init file:
+
+        ```elisp
+        ;; Uncomment the line below to get rid of "Failed to verify signature error"
+        ;; (setq package-check-signature nil)
+        ;; See https://emacs.stackexchange.com/questions/233/how-to-proceed-on-package-el-signature-check-failure
+
+        (require 'package)
+        (package-initialize)
+        (unless (package-installed-p 'company)
+          (progn
+            (or (file-exists-p package-user-dir)
+                (package-refresh-contents))
+            (package-install 'company)))
+        ```
+   2. Make sure that company-mode is activated when erlang-mode is
+      loaded by putting the following in your Emacs init file:
+      
+      ```elisp
+      (add-hook 'erlang-mode-hook 'company-mode)
+      ```
+6. Restart Emacs
 
 
 Test YAEMEP in Emacs Without Installing

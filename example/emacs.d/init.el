@@ -53,32 +53,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require 'yaemep-completion-mode)
 ;; (Completion command can be invoked with "M-TAB")
-;;
-;; --------------------------------------------------------
-;;(Optional but Recommended) Load company-mode when erlang-mode has
-;; loaded (will give you fancy in-buffer completions if company-mode
-;; is installed):
-;; --------------------------------------------------------
-(add-hook 'erlang-mode-hook 'company-mode)
-;; --------------------------------------------------------
-;;
-;; --------------------------------------------------------
-;; (Optional But Recomended) Install company-mode
-;; --------------------------------------------------------
-;;
-;; Not necessary if you have installed company-mode on Ubunu or Debian
-;; with:
-;;
-;; sudo apt-get install elpa-company
-;;
-(progn
-  (require 'package)
-  (package-initialize)
-  (or (file-exists-p package-user-dir)
-      (package-refresh-contents))
-  (unless (package-installed-p 'company)
-    (package-install 'company)))
-;; --------------------------------------------------------
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -134,3 +108,31 @@
 (require 'yaemep-extra-erlang-menu-mode)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+;; --------------------------------------------------------
+;; (Optional But Recomended) Install company-mode
+;; --------------------------------------------------------
+;;
+;; Not necessary if you have installed company-mode on Ubunu or Debian
+;; with:
+;;
+;; sudo apt-get install elpa-company
+;;
+
+(require 'package)
+(package-initialize)
+(unless (package-installed-p 'company)
+  (progn
+    (or (file-exists-p package-user-dir)
+        (package-refresh-contents))
+    (package-install 'company)))
+;; --------------------------------------------------------
+
+
+;; --------------------------------------------------------
+;;(Optional but Recommended) Load company-mode when erlang-mode has
+;; loaded (will give you fancy in-buffer completions if company-mode
+;; is installed):
+;; --------------------------------------------------------
+(add-hook 'erlang-mode-hook 'company-mode)
+;; --------------------------------------------------------
