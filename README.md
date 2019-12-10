@@ -106,7 +106,8 @@ Install
    ```
 5. (Optional) Install and activate company-mode to get modern
    in-buffer autocompletion:
-   1. Install company-mode using alternative 1 or 2:
+   1. Install [company-mode](https://company-mode.github.io/), for
+      example, using one of the two alternatives below:
       * Alternative 1 (Ubuntu and Debian based systems) -- Run the
         command:
         
@@ -172,7 +173,7 @@ available and descriptions of how to trigger them:
 ### Go to Function at Point etc with `yaemep-etags-auto-gen-mode`
 
 The Emacs minor-mode `yaemep-etags-auto-gen-mode` automatically
-generates a TAG file for Erlang projects that allows you to go the
+generates a TAGS file for Erlang projects that allows you to go the
 project function under point among other things. Only .erl and .hrl
 files in the current project will be included in the TAGS file by
 default but this can be changed by setting the variables
