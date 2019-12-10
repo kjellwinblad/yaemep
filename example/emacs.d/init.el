@@ -49,9 +49,9 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Install erlang-yaemep-completion-mode
+;; Install yaemep-completion-mode
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'erlang-yaemep-completion-mode)
+(require 'yaemep-completion-mode)
 ;; (Completion command can be invoked with "M-TAB")
 ;;
 ;; --------------------------------------------------------
@@ -83,40 +83,40 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Install erlang-yaemep-etags-auto-gen-mode
+;; Install yaemep-etags-auto-gen-mode
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'erlang-yaemep-etags-auto-gen-mode)
-;; (Use "M-." to go to thing at point and "M-, to go back")
+(require 'yaemep-etags-auto-gen-mode)
+;; (Use "M-." to go to thing at point and "M-," to go back")
 ;;
 ;; Use the following variable to add extra directories to include in
-;; the TAGS file for the project. Erlang/OTP source code directories
+;; the TAGS file for your project. Erlang/OTP source code directories
 ;; in this list will be ignored if the project directory is an
 ;; Erlang/OTP source code directory. Non-existing directories will
 ;; also be ignored. The directory "release/tests" will be ignored
 ;; inside Erlang/OTP source code directories.
-(setq erlang-yaemep-etags-auto-gen-extra-dirs (list "/home/user/src/otp/"))
+(setq yaemep-etags-auto-gen-extra-dirs (list "/home/user/src/otp/"))
 ;; Change the following variable if you want to include other types of
 ;; files in your TAGS file.
-(setq erlang-yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}")
-;; You may want to activate erlang-yaemep-etags-auto-gen-mode in other
+(setq yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}")
+;; You may want to activate yaemep-etags-auto-gen-mode in other
 ;; major modes if you changed the
-;; erlang-yaemep-etags-auto-gen-search-pattern variable above.
+;; yaemep-etags-auto-gen-search-pattern variable above.
 ;;
 ;; For example:
 ;;
-;;(add-hook 'c-mode 'erlang-yaemep-etags-auto-gen-mode)
+;;(add-hook 'c-mode 'yaemep-etags-auto-gen-mode)
 ;;
 ;; -------------------------------------------------------
-;; (Optional but Recomended) Load etags file automatically after it
+;; (Optional but Recommended) Load etags file automatically after it
 ;; has got updated
 ;; -------------------------------------------------------
 ;;
-;; The etags-table.el is in the yaemep folder for your convenience.
+;; The etags-table/etags-table.el is in the yaemep folder for your
+;; convenience.
 ;;
 ;; See https://www.emacswiki.org/emacs/EtagsTable for more information
 ;; about etags-table
 ;;
-;; -------------------------------------------------------
 (setq tags-revert-without-query 1)
 (add-to-list 'load-path
              (concat (file-name-directory
@@ -128,6 +128,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(require 'erlang-yaemep-extra-erlang-menu-mode)
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Install yaemep-extra-erlang-menu-mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(require 'yaemep-extra-erlang-menu-mode)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

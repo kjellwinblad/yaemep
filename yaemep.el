@@ -3,33 +3,33 @@
 (require 'thingatpt)
 (require 'erlang)
 
-(defvar erlang-yaemep-get-support-escript-path-cache nil)
+(defvar yaemep-get-support-escript-path-cache nil)
 
-(defun erlang-yaemep-get-support-escript-path ()
-  "Returns the path of the Emacs erlang-yaemep-mode support escript."
-  (or erlang-yaemep-get-support-escript-path-cache
-      (setq erlang-yaemep-get-support-escript-path-cache
+(defun yaemep-get-support-escript-path ()
+  "Returns the path of the Emacs yaemep-mode support escript."
+  (or yaemep-get-support-escript-path-cache
+      (setq yaemep-get-support-escript-path-cache
             (locate-file "emacs_erlang_yaemep_support.erl" load-path))))
 
-(defvar erlang-yaemep-get-support-escript-command-path-cache nil)
+(defvar yaemep-get-support-escript-command-path-cache nil)
 
-(defun erlang-yaemep-get-support-escript-command-path ()
+(defun yaemep-get-support-escript-command-path ()
   "Returns the path of the escript command."
-  (or erlang-yaemep-get-support-escript-command-path-cache
-      (setq erlang-yaemep-get-support-escript-command-path-cache
+  (or yaemep-get-support-escript-command-path-cache
+      (setq yaemep-get-support-escript-command-path-cache
             (locate-file "escript" exec-path exec-suffixes))))
 
-(defvar erlang-yaemep-check-support-escript-cache nil)
+(defvar yaemep-check-support-escript-cache nil)
 
-(defvar erlang-yaemep-check-support-escript-check-message-functions
+(defvar yaemep-check-support-escript-check-message-functions
   "")
 
-(defun erlang-yaemep-check-support-escript (functionaliy-name &optional always-print-message)
-  "Returns t if the erlang-yaemep-mode support escript can be executed.
-  Prints a warning message and returns nil if erlang-yaemep-mode support
+(defun yaemep-check-support-escript (functionaliy-name &optional always-print-message)
+  "Returns t if the yaemep-mode support escript can be executed.
+  Prints a warning message and returns nil if yaemep-mode support
   escript cannot be executed."
-  (or erlang-yaemep-check-support-escript-cache
-      (let* ((escript-in-path (or (erlang-yaemep-get-support-escript-command-path) "escript"))
+  (or yaemep-check-support-escript-cache
+      (let* ((escript-in-path (or (yaemep-get-support-escript-command-path) "escript"))
              (escript-ok
               (string-equal
                "OK"
@@ -37,54 +37,54 @@
                  (progn
                    (call-process
                     escript-in-path nil t nil
-                    (erlang-yaemep-get-support-escript-path)
+                    (yaemep-get-support-escript-path)
                     "check")
                    (buffer-string))))))
         (if (and (not escript-ok)
                  (or always-print-message
                      (not (string-match-p
                            (regexp-quote functionaliy-name)
-                           erlang-yaemep-check-support-escript-check-message-functions))))
+                           yaemep-check-support-escript-check-message-functions))))
             (progn
               (if (not (string-match-p
                            (regexp-quote functionaliy-name)
-                           erlang-yaemep-check-support-escript-check-message-functions))
-                  (setq erlang-yaemep-check-support-escript-check-message-functions
-                        (concat erlang-yaemep-check-support-escript-check-message-functions
+                           yaemep-check-support-escript-check-message-functions))
+                  (setq yaemep-check-support-escript-check-message-functions
+                        (concat yaemep-check-support-escript-check-message-functions
                                 functionaliy-name)))
               (message (concat
                         "Cannot execute \"escript %s check\" (%s will not work). "
                         "Please check that the escript program is in your path and "
                         "that it is compatible with the "
-                        "erlang-yaemep-mode version. "
+                        "yaemep-mode version. "
                         (if always-print-message "" "This message will only be displayed once."))
-                       (erlang-yaemep-get-support-escript-path)
+                       (yaemep-get-support-escript-path)
                        (or functionaliy-name "the currently executing function"))))
-        (setq erlang-yaemep-check-support-escript-cache escript-ok))))
+        (setq yaemep-check-support-escript-cache escript-ok))))
 
-(defun erlang-yaemep-support-escript-exec (async parameter-list &optional functionaliy-name)
-  "Executes the erlang-yaemep-mode support escript with the elements in
+(defun yaemep-support-escript-exec (async parameter-list &optional functionaliy-name)
+  "Executes the yaemep-mode support escript with the elements in
   PARAMETER-LIST as parameters. Returns the a string containing
   the text that the script printed to standard output, if ASYNC
   is nil. The function will return directly with the empty string
   as return value if ASYNC is t."
-  (if (not (erlang-yaemep-check-support-escript
+  (if (not (yaemep-check-support-escript
             (or functionaliy-name
-                "the erlang-yaemep-support-escript-exec function")))
+                "the yaemep-support-escript-exec function")))
       ""
     (with-temp-buffer
       (progn
-        (eval (append (list 'call-process (erlang-yaemep-get-support-escript-command-path) nil
+        (eval (append (list 'call-process (yaemep-get-support-escript-command-path) nil
                             (if async 0 t) nil)
-                      (list (erlang-yaemep-get-support-escript-path))
+                      (list (yaemep-get-support-escript-path))
                       parameter-list))
 
         (buffer-string)))))
 
-(defun erlang-yaemep-project-dir ()
+(defun yaemep-project-dir ()
   "Attempts to automatically find the project root directory
 based on the path to the file associated with the current
-buffer. The erlang-yaemep-project-dir function tries the following
+buffer. The yaemep-project-dir function tries the following
 strategies in the following order to find the project root
 directory:
 
@@ -105,27 +105,27 @@ one of the listed directories will be returned.
 current buffer is located."
   (interactive)
   (file-name-as-directory
-   (erlang-yaemep-support-escript-exec nil
+   (yaemep-support-escript-exec nil
                                 (list "get_project_dir"
                                       (expand-file-name (buffer-file-name)))
-                                "the erlang-yaemep-project-dir function")))
+                                "the yaemep-project-dir function")))
 
-(defvar erlang-yaemep-etags-auto-gen-extra-dirs nil
-  "erlang-yaemep-etags-auto-gen-mode will generate a TAGS file
+(defvar yaemep-etags-auto-gen-extra-dirs nil
+  "yaemep-etags-auto-gen-mode will generate a TAGS file
   with tags for the files in the project directory (see
-  erlang-yaemep-project-dir) and the files that are stored in the
+  yaemep-project-dir) and the files that are stored in the
   direcories whose paths are stored in the list that this
   variable holds. Any paths to Erlang/OTP source code directories
   in this list will be ignored if the project directory is an
   Erlang/OTP source code directory.")
 
-(defvar erlang-yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}"
-  "erlang-yaemep-etags-auto-gen-mode will use this search pattern
+(defvar yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}"
+  "yaemep-etags-auto-gen-mode will use this search pattern
   to find files to generate tags for. See the Erlang
   documentation for the function filelib:wildcard/1 for the
   syntax of search patterns")
 
-(defun erlang-yaemep-project-etags-update (&optional
+(defun yaemep-project-etags-update (&optional
                                            project-root
                                            output-tags-file
                                            search-pattern
@@ -136,7 +136,7 @@ current buffer is located."
 resulting tags file will be stored in the file with the path
 OUTPUT-TAGS-FILE."
   (interactive
-   (let* ((default-project-root (erlang-yaemep-project-dir))
+   (let* ((default-project-root (yaemep-project-dir))
           (default-tags-file (concat default-project-root "TAGS"))
           (use-file-dialog nil))
      (list
@@ -163,39 +163,39 @@ OUTPUT-TAGS-FILE."
       ;; Don't run asyncroniusly when executed interactively
       nil)))
   (cond
-   ((erlang-yaemep-check-support-escript "the erlang-yaemep-project-etags-update-visit-interactive function" (not async))
-    (erlang-yaemep-support-escript-exec
+   ((yaemep-check-support-escript "the yaemep-project-etags-update-visit-interactive function" (not async))
+    (yaemep-support-escript-exec
      async
      (append
       (list "update_etags_project_dir"
-            (expand-file-name (or project-root (erlang-yaemep-project-dir)))
+            (expand-file-name (or project-root (yaemep-project-dir)))
             (expand-file-name
              (let ((actual-output-tags-file
-                    (or output-tags-file (erlang-yaemep-project-dir))))
+                    (or output-tags-file (yaemep-project-dir))))
                (if (file-directory-p actual-output-tags-file)
                    (concat (file-name-as-directory actual-output-tags-file) "TAGS")
                  actual-output-tags-file)))
-            (or search-pattern erlang-yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}"))
-      (mapcar 'expand-file-name (or extra-directories erlang-yaemep-etags-auto-gen-extra-dirs))))
+            (or search-pattern yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}"))
+      (mapcar 'expand-file-name (or extra-directories yaemep-etags-auto-gen-extra-dirs))))
     (if (called-interactively-p)
         (progn
-          (visit-tags-table (erlang-yaemep-project-dir))
+          (visit-tags-table (yaemep-project-dir))
           (message "Tags for %s updated and saved in %s" project-root output-tags-file))))
    (t
     nil)))
 
-(defun erlang-yaemep-project-etags-update-in-background (&optional
+(defun yaemep-project-etags-update-in-background (&optional
                                                          search-pattern
                                                          extra-directories
                                                          project-root
                                                          output-tags-file)
   "Run the etags command in the background on all files with the
 .erl and .hrl ending that are inside the project directory
-returned by the function erlang-yaemep-project-dir. See the
-documentation of the Emacs lisp function erlang-yaemep-project-dir and
+returned by the function yaemep-project-dir. See the
+documentation of the Emacs lisp function yaemep-project-dir and
 the etags command for more information."
   (interactive)
-  (erlang-yaemep-project-etags-update
+  (yaemep-project-etags-update
    project-root
    output-tags-file
    search-pattern
@@ -203,7 +203,7 @@ the etags command for more information."
    t))
 
 
-(defun erlang-yaemep-tags-help ()
+(defun yaemep-tags-help ()
   "Describe how to activate automatic update of TAGS file."
   (interactive)
   (with-output-to-temp-buffer "*Erlang Tags Help*"
@@ -222,7 +222,7 @@ interest. One way to generate a TAGS file is to use the menu item
 \"Erlang -> TAGS -> Generate and Visit TAGS File\". Pressing this
 menu item could get tedious as one has to redo this every time
 one wants to include new changes in the TAGS file. The next
-section describes how to utilize a function in erlang-yaemep-mode to
+section describes how to utilize a function in yaemep-mode to
 automatically update the TAGS file in the background every time a
 .erl or .hrl file is opened or saved.
 
@@ -230,28 +230,28 @@ automatically update the TAGS file in the background every time a
 Update TAGS File Automatically
 ------------------------------
 
-Put the following somewhere after (require 'erlang-yaemep-start) in your
+Put the following somewhere after (require 'yaemep-start) in your
 Emacs init file to automatically update the TAGS file for your
 Emacs project every time you open or save a .erl or .hrl file:
 
-(add-hook 'erlang-yaemep-mode-hook
+(add-hook 'yaemep-mode-hook
           (lambda ()
             (progn
-              (erlang-yaemep-project-etags-update-in-background)
+              (yaemep-project-etags-update-in-background)
               (add-hook 'after-save-hook
                         (lambda ()
                           (progn
-                            (erlang-yaemep-project-etags-update-in-background))) nil t))))
+                            (yaemep-project-etags-update-in-background))) nil t))))
 
 **Important**
 
 The above code requires that you have the escript command in your
 path, which you most likely have if you have Erlang installed on
-your system. The erlang-yaemep-project-etags-update-in-background
+your system. The yaemep-project-etags-update-in-background
 function will just print a warning message in the message buffer
 and return if it cannot find a working escript program.
 
-The erlang-yaemep-project-etags-update-in-background function will
+The yaemep-project-etags-update-in-background function will
 attempt to automatically find the root of the project that the
 file that the current buffer is asociated with. The function
 should be able to locate most types of Erlang projects that use
@@ -262,12 +262,12 @@ build system, it will fall back to looking for a .git, .svn or
 on a build system config file or a version control directory, it
 will use the folder where the file that is asociated with the
 current buffer is stored as the project root. Finally, if the
-erlang-yaemep-project-etags-update-in-background cannot find the correct
+yaemep-project-etags-update-in-background cannot find the correct
 project root for your project, you can force it to use a
 particular folder by placing a file called
 \".emacs_erlang_mode_project\" in the root of your project. You
-can type \"M-x erlang-yaemep-project-dir\" to check which directory
-erlang-yaemep-project-etags-update-in-background will use as the project
+can type \"M-x yaemep-project-dir\" to check which directory
+yaemep-project-etags-update-in-background will use as the project
 directory.
 
 
@@ -302,27 +302,27 @@ init file (note that the path in the code below needs to be
 (setq etags-table-search-up-depth 99)")))
 
 
-(defun erlang-yaemep-completion-cache-dir ()
+(defun yaemep-completion-cache-dir ()
   "Returns the directory in which the Erlang completion cache is stored"
   (expand-file-name
    (concat (file-name-as-directory (locate-user-emacs-file "cache"))
            (file-name-as-directory "erlang_mode_completion_cache"))))
 
-(defun erlang-yaemep-completion-cache-update-in-background ()
+(defun yaemep-completion-cache-update-in-background ()
   "Update the Erlang completion cache for the project in the background"
   (interactive)
-  (erlang-yaemep-support-escript-exec
+  (yaemep-support-escript-exec
    t
    (list "update_completion_cache"
-         (erlang-yaemep-completion-cache-dir)
+         (yaemep-completion-cache-dir)
          (expand-file-name (buffer-file-name))))
-  (setq erlang-yaemep-completion-at-point-cache nil))
+  (setq yaemep-completion-at-point-cache nil))
 
-(defvar-local erlang-yaemep-completion-at-point-enabled nil)
+(defvar-local yaemep-completion-at-point-enabled nil)
 
-(defvar-local erlang-yaemep-completion-at-point-cache nil)
+(defvar-local yaemep-completion-at-point-cache nil)
 
-(defun erlang-yaemep-completion-at-point ()
+(defun yaemep-completion-at-point ()
   ""
   (interactive)
   (let* ((case-fold-search nil)
@@ -371,53 +371,53 @@ init file (note that the path in the code below needs to be
               (buffer-substring-no-properties function-start-point end-point))))
          (get-results
           (lambda (bounds command complete-string exit-fun)
-            (if (and erlang-yaemep-completion-at-point-cache
-                     (equal (car erlang-yaemep-completion-at-point-cache)
+            (if (and yaemep-completion-at-point-cache
+                     (equal (car yaemep-completion-at-point-cache)
                             (list (buffer-file-name) command complete-string)))
-                (append bounds (cdr (cdr (car (cdr erlang-yaemep-completion-at-point-cache)))))
+                (append bounds (cdr (cdr (car (cdr yaemep-completion-at-point-cache)))))
               (let* ((file-name (buffer-file-name))
                      (result
                       (list (car bounds)
                             (car (cdr bounds))
                             (split-string
-                             (erlang-yaemep-support-escript-exec
+                             (yaemep-support-escript-exec
                               nil
                               (list command
-                                    (erlang-yaemep-completion-cache-dir)
+                                    (yaemep-completion-cache-dir)
                                     file-name
                                     complete-string)) ";")
                             :exclusive 'yes
                             :exit-function exit-fun)))
-                (setq erlang-yaemep-completion-at-point-cache
+                (setq yaemep-completion-at-point-cache
                       (list (list file-name command complete-string) result))
                 result)))))
-    (if (not erlang-yaemep-completion-at-point-enabled)
+    (if (not yaemep-completion-at-point-enabled)
         ;; Check if escript is in path
-        (if (not (erlang-yaemep-check-support-escript
-                  "the erlang-yaemep-completion-at-point function"))
+        (if (not (yaemep-check-support-escript
+                  "the yaemep-completion-at-point function"))
             (progn
               (message (concat
-                        "The erlang-yaemep-completion-at-point function "
+                        "The yaemep-completion-at-point function "
                         "will be disabled. See the message buffer "
                         "for more information."))
-              (setq erlang-yaemep-completion-at-point-enabled 'no)
-              (erlang-yaemep-completion-at-point))
+              (setq yaemep-completion-at-point-enabled 'no)
+              (yaemep-completion-at-point))
           (progn
-            (setq erlang-yaemep-completion-at-point-enabled 'yes)
+            (setq yaemep-completion-at-point-enabled 'yes)
             (if (boundp 'company-require-match)
                 ;; Disable company-mode require match in the buffer if
                 ;; company-mode is enabled.
                 (progn
                   (make-local-variable 'company-require-match)
                   (setq company-require-match nil)))
-            (erlang-yaemep-completion-cache-update-in-background)
+            (yaemep-completion-cache-update-in-background)
             (add-hook 'after-save-hook
                       (lambda ()
                         (progn
-                          (erlang-yaemep-completion-cache-update-in-background))) nil t)
-            (erlang-yaemep-completion-at-point))))
+                          (yaemep-completion-cache-update-in-background))) nil t)
+            (yaemep-completion-at-point))))
     (cond
-     ((equal erlang-yaemep-completion-at-point-enabled 'no)
+     ((equal yaemep-completion-at-point-enabled 'no)
       nil)
      ;; Check if outside function
      ((let* ((clause-start-end

@@ -607,6 +607,7 @@ list_local_vars(CompletionString) ->
                  || [{Start, Length}] <- List]
         end)).
 
+
 -spec wrapped_main([string()]) -> ok.
 wrapped_main(["check"]) ->
     io:format("OK");
