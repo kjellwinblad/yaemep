@@ -39,7 +39,7 @@ Install
    (add-to-list 'load-path "/the/path/to/your/yaemep/")
 
    ;; Install yaemep-completion-mode
-   ;; (Completion command can be invoked with "M-TAB")
+   ;; (Completion command can be invoked with "C-M-i")
    (require 'yaemep-completion-mode)
 
    ;; Install yaemep-etags-auto-gen-mode
@@ -144,11 +144,19 @@ User Guide
 
 Press the shortcut for completion somewhere inside an Erlang function
 definition to trigger completion. The shortcut for completion is
-"M-TAB" (i.e., the ALT-key and the TAB-key at the same time on most
-systems). The line that the cursor/point is on need to be inside an
-Erlang function and start with a space or a tab character for
-completion to work. Below is a list of the types of completions
-available and descriptions of how to trigger them:
+"C-M-i" (i.e., the CTRL-key, ALT-key and the i-key at the same time on
+most systems). The shortcut for completion can easily be changed by
+putting something like the following in your Emacs init file:
+
+``` elisp
+;; Invoke completion by pressing the ALT-key and space-key at the same time:
+(define-key yaemep-completion-mode-map (kbd "M-SPC") 'yaemep-completion)
+```
+
+
+The line that the cursor/point is on need to be inside an Erlang
+function and start with a space or a tab character for completion to
+work. Below is a list of the types of completions that are available:
 
 * **modules, local functions and variables** -- Press the completion
   shortcut when there is a space before the cursor/point

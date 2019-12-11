@@ -52,6 +52,7 @@ https://github.com/kjellwinblad/yaemep"))))
   :lighter " yaemep-comp"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "M-TAB") 'yaemep-completion)
+            (define-key map (kbd "C-M-i") 'yaemep-completion)
             map))
 
 ;;;###autoload
