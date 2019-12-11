@@ -629,23 +629,63 @@ list_local_vars(CompletionString) ->
         end)).
 
 
+avoid_parallel_update(Dir, Fun) ->
+    FileName = filename:join(Dir, ".yamep_update_file"),
+    Now = erlang:system_time(second),
+    HasExecuted =
+        case file:read_file(FileName) of
+            {ok, Bin} ->
+                UpdateStartTime =
+                    erlang:list_to_integer(erlang:binary_to_list(Bin)),
+                SecondsSinceLastStart =
+                    Now - UpdateStartTime,
+                case SecondsSinceLastStart > 60 of
+                    true ->
+                        file:write_file(FileName, erlang:integer_to_list(Now)),
+                        Fun(),
+                        true;
+                    false -> false
+                end;
+            _ ->
+                file:write_file(FileName, erlang:integer_to_list(Now)),
+                Fun(),
+                true
+        end,
+    case HasExecuted of
+        true -> file:delete(FileName);
+        false -> ok
+    end,
+    ok.
+
+
 -spec wrapped_main([string()]) -> ok.
 wrapped_main(["check"]) ->
     io:format("OK");
 wrapped_main(["get_project_dir", FileNameStr]) ->
     io:format(erlang_project_dir(FileNameStr));
 wrapped_main(["update_etags", FileNameStr]) ->
-    update_etags(erlang_project_dir(FileNameStr));
+    ProjectDir = erlang_project_dir(FileNameStr),
+    avoid_parallel_update(
+      ProjectDir,
+      fun() -> update_etags(ProjectDir) end);
 wrapped_main(["update_etags_project_dir",
               ProjectDir,
               TagsFileName,
               SearchPattern|
               AdditionalDirs]) ->
-    update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirs);
+    avoid_parallel_update(
+      ProjectDir,
+      fun() ->
+              update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirs)
+      end);
 wrapped_main(["update_completion_cache", CacheDir, FileNameStr]) ->
-    erlang_project_update_cache(CacheDir,
-                                erlang_project_dir(FileNameStr),
-                                FileNameStr);
+    avoid_parallel_update(
+      filename:join(CacheDir, erlang_project_dir(FileNameStr)),
+      fun() ->
+              erlang_project_update_cache(CacheDir,
+                                          erlang_project_dir(FileNameStr),
+                                          FileNameStr)
+      end);
 wrapped_main(["list_modules", CacheDir, FileNameStr, _]) ->
     io:format(
       lists:join(
