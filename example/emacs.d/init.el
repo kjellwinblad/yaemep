@@ -6,10 +6,11 @@
 (setq user-emacs-directory (file-name-directory user-init-file))
 (setq erlang-mode-path (concat user-emacs-directory "erlang"))
 (setq yaemep-path
+      (or (and (file-directory-p "/the/path/to/your/yaemep/") "/the/path/to/your/yaemep/")
       (file-name-directory
        (directory-file-name
 	(file-name-directory
-	 (directory-file-name user-emacs-directory)))))
+	 (directory-file-name user-emacs-directory))))))
 ;; Could be unsafe but fixes experied key issue
 (setq package-check-signature nil)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

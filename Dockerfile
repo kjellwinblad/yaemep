@@ -1,5 +1,4 @@
 FROM erlang:22
-COPY . /yaemep/
 RUN apt-get update
 RUN apt-get install -y\
         emacs-nox\
@@ -7,4 +6,9 @@ RUN apt-get install -y\
         tmux\
         man\
         git
-CMD /yaemep/example/emacs_with_erlang_and_yaemep.sh /yaemep/emacs_erlang_yaemep_support.erl
+ENV user yaemep
+RUN useradd -ms /bin/bash ${user} && chown -R ${user} /home/${user}
+COPY ./example/emacs.d /home/yaemep/.emacs.d
+COPY . /the/path/to/your/yaemep/
+USER yaemep
+CMD emacs /the/path/to/your/yaemep/emacs_erlang_yaemep_support.erl
