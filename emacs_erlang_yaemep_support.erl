@@ -723,9 +723,13 @@ wrapped_main(["list_modules_and_functions_in_erl_file",
         list_functions_in_erl_file_from_cache(CacheDir, FileNameStr),
     Vars = list_local_vars(CompletionString),
     Res = lists:join(";",
-                     [lists:join(";", LocalFunctions),
-                      lists:join(";", Modules),
-                      lists:join(";", Vars)]),
+                     lists:filter(
+                       fun([]) -> false;
+                          (_) -> true
+                       end,
+                       [lists:join(";", LocalFunctions),
+                        lists:join(";", Modules),
+                        lists:join(";", Vars)])),
     io:format("~s", [Res]);
 wrapped_main(["list_local_vars", _CacheDir, _FileNameStr, CompletionString]) ->
     io:format("~s", [lists:join(";", list_local_vars(CompletionString))]).
