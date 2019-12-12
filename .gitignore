@@ -13,3 +13,15 @@ TAGS
 example/emacs.d/cache/
 example/emacs.d/erlang*
 example/emacs.d/elpa/
+
+test/all_runs.html
+test/ct_default.css
+test/ct_log_cache
+test/ct_run.ct@shlap.2019-12-12_06.00.20/
+test/index.html
+test/jquery-latest.js
+test/jquery.tablesorter.min.js
+test/suite.log.latest.html
+test/variables-ct@shlap
+test/*.beam
+test/ct_run.ct@*
