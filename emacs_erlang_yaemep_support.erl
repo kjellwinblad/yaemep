@@ -547,9 +547,8 @@ list_functions_in_erl_file_from_cache(CacheDir, FileNameStr) ->
         _:_ -> list_functions_in_erl_file(FileNameStr)
     end.
 
--spec remove_irrelevant_scopes(string()) -> string().
-remove_irrelevant_scopes(TextP) ->
-    Text = erlang:iolist_to_binary(TextP),
+-spec remove_irrelevant_scopes(binary()) -> binary().
+remove_irrelevant_scopes(Text) ->
     NonClosulreGroupStarts =
         case re:run(Text, "(?|begin)|(?|case)|(?|if)|(?|receive)|(?|try)",
                     [global, unicode]) of
@@ -603,12 +602,13 @@ remove_irrelevant_scopes(TextP) ->
                                 OStart < Start andalso OEnd > End
                         end, RemoveRanges1)
           end, RemoveRanges1),
-    lists:foldl(
-      fun({Start, End}, TextSoFar) ->
-              string:replace(TextSoFar,
-                             binary:part(Text, Start, End - Start),
-                             "")
-      end, Text, RemoveRanges2).
+    erlang:iolist_to_binary(
+      lists:foldl(
+        fun({Start, End}, TextSoFar) ->
+                string:replace(TextSoFar,
+                               binary:part(Text, Start, End - Start),
+                               "")
+        end, Text, RemoveRanges2)).
 
 -spec list_local_vars(string()) -> [string()].
 list_local_vars(CompletionString) ->
@@ -616,7 +616,7 @@ list_local_vars(CompletionString) ->
                     "\"[^\"\\\\]*(\\\\.[^\"\\\\]*)*\"", "",
                     [global, unicode]),
     N2 = re:replace(N1, "[%].*", "", [global, unicode]),
-    N3 = erlang:iolist_to_binary(remove_irrelevant_scopes(N2)),
+    N3 = erlang:iolist_to_binary(remove_irrelevant_scopes(erlang:iolist_to_binary(N2))),
     Res = re:run(N3, "[A-Z][A-Za-z0-9_]*",
                  [dotall, global, multiline, unicode]),
     sets:to_list(
