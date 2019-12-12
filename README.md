@@ -18,7 +18,7 @@ extensions:
   Erlang projects (makes it possible to, e.g., go to the function
   under the cursor by pressing "M-.")
 * **yaemep-extra-erlang-menu-mode** Adds a menu with shortcuts to
-  useful YAMEP and Erlang/OTP functions.
+  useful YAEMEP and Erlang/OTP functions.
 
 Install
 -------
@@ -35,7 +35,7 @@ Install
    the correct path):
 
    ```elisp
-   ;; (The line below needs to be changed!) Add YAMEP to your Emacs load-path:
+   ;; (The line below needs to be changed!) Add YAEMEP to your Emacs load-path:
    (add-to-list 'load-path "/the/path/to/your/yaemep/")
 
    ;; Install yaemep-completion-mode
@@ -186,25 +186,25 @@ variables. Here is a list of useful shortcuts:
 ### Menu with `yaemep-extra-erlang-menu-mode`
 
 The Emacs minor-mode `yaemep-extra-erlang-menu-mode` will add a menu to
-the top menu bar in Emacs with the title "Erlang YAMEP". This menu
+the top menu bar in Emacs with the title "Erlang YAEMEP". This menu
 contains useful shortcuts and key-combinations that can be used to
 trigger them.
 
-### How YAMEP Finds the Project Root
+### How YAEMEP Finds the Project Root
 
-YAMEP's functions attempt to automatically find the root of the
+YAEMEP's functions attempt to automatically find the root of the
 project for the file that the current buffer is associated
-with. YAMEP should be able to locate the root of most types of Erlang
-projects. To find the project root YAMEP first tries to find a config
+with. YAEMEP should be able to locate the root of most types of Erlang
+projects. To find the project root YAEMEP first tries to find a config
 file for one of the build systems rebar3, mix and erlang.mk. If the
-root of the project can't be found based on the build system, YAMEP
+root of the project can't be found based on the build system, YAEMEP
 will look for a .git, .svn or .cvs folder (version control system
-folders). If YAMEP cannot locate the project root using the methods
+folders). If YAEMEP cannot locate the project root using the methods
 described above, the folder where the file that is associated with the
 current buffer is stored will be used as the project root. Finally,
-you can force YAMEP to use a particular folder by placing a file
+you can force YAEMEP to use a particular folder by placing a file
 called ".emacs_erlang_mode_project" in the root of your project. You
-can type "M-x yaemep-project-dir" to check which directory YAMEP
+can type "M-x yaemep-project-dir" to check which directory YAEMEP
 will use as the project directory.
 
 License
