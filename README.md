@@ -16,7 +16,7 @@ extensions:
   names in a module, module local functions and local variables
 * **yaemep-etags-auto-gen-mode** Automatic generation of etags for
   Erlang projects (makes it possible to, e.g., go to the function
-  under the cursor by pressing "M-.")
+  under the cursor by pressing "`M-.`")
 * **yaemep-extra-erlang-menu-mode** Adds a menu with shortcuts to
   useful YAEMEP and Erlang/OTP functions.
 
@@ -144,7 +144,7 @@ User Guide
 
 Press the shortcut for completion somewhere inside an Erlang function
 definition to trigger completion. The shortcut for completion is
-"C-M-i" (i.e., the CTRL-key, ALT-key and the i-key at the same time on
+"`C-M-i`" (i.e., the `CTRL`-key, `ALT`-key and the `i`-key at the same time on
 most systems). The shortcut for completion can easily be changed by
 putting something like the following in your Emacs init file:
 
@@ -179,8 +179,8 @@ default but this can be changed by setting the variables
 in the Install section above for details about how to set these
 variables. Here is a list of useful shortcuts:
 
-* **C-.** Go to function under point
-* **C-,** Go back to original place after you have executed "go to
+* **`C-.`** Go to function under point
+* **`C-,`** Go back to original place after you have executed "go to
   function under point"
 
 ### Menu with `yaemep-extra-erlang-menu-mode`
