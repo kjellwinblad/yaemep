@@ -390,6 +390,12 @@ init file (note that the path in the code below needs to be
                          end-point
                        (point)))))
               (buffer-substring-no-properties function-start-point end-point))))
+         (goto-first-arg-after-comp
+          (lambda ()
+            (if (eq (string-to-char ")") (char-before))
+                (progn
+                  (search-backward "(" nil t nil)
+                  (forward-char)))))
          (get-results
           (lambda (bounds command complete-string exit-fun)
             (if (and yaemep-completion-at-point-cache
@@ -483,7 +489,9 @@ init file (note that the path in the code below needs to be
      ((funcall complete-fun-in-module)
       (let ((complete-string (funcall complete-fun-in-module))
             (bounds (funcall last-match-bounds))
-            (exit-fun (lambda (_string _status) nil)))
+            (exit-fun
+             (lambda (_string _status)
+               (funcall goto-first-arg-after-comp))))
         (funcall get-results bounds
                  "list_functions_in_module"
                  (concat (car (split-string complete-string ":")) ":")
@@ -501,7 +509,8 @@ init file (note that the path in the code below needs to be
      ((funcall complete-local-fun)
       (let ((bounds (funcall last-match-bounds))
             (exit-fun (lambda (_string _status)
-                        (delete-char 2))))
+                        (delete-char 2)
+                        (funcall goto-first-arg-after-comp))))
         (funcall get-results
                  bounds
                  "list_functions_in_erl_file"
@@ -511,7 +520,8 @@ init file (note that the path in the code below needs to be
       (let* ((bounds (funcall last-match-bounds))
              (complete-string
               (funcall get-var-complete-string (car bounds)))
-             (exit-fun (lambda (_string _status) nil)))
+             (exit-fun (lambda (_string _status)
+                         (funcall goto-first-arg-after-comp))))
         (funcall get-results
                  bounds
                  "list_modules_and_functions_in_erl_file"
