@@ -617,7 +617,7 @@ list_local_vars(CompletionString) ->
                     [global, unicode]),
     N2 = re:replace(N1, "[%].*", "", [global, unicode]),
     N3 = erlang:iolist_to_binary(remove_irrelevant_scopes(erlang:iolist_to_binary(N2))),
-    Res = re:run(N3, "[A-Z][A-Za-z0-9_]*",
+    Res = re:run(N3, "_?[A-Z][A-Za-z0-9_]*",
                  [dotall, global, multiline, unicode]),
     sets:to_list(
       sets:from_list(
