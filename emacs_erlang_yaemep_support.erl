@@ -629,8 +629,10 @@ list_local_vars(CompletionString) ->
         end)).
 
 
-avoid_parallel_update(Dir, Fun) ->
-    FileName = filename:join(Dir, ".yamep_update_file"),
+avoid_parallel_update(Dir, Fun, UpdateFileSuffix) ->
+    FileName =
+        filename:join(Dir, io_lib:format(".yamep_update_file_~s",
+                                         [UpdateFileSuffix])),
     Now = erlang:system_time(second),
     HasExecuted =
         case file:read_file(FileName) of
@@ -667,7 +669,8 @@ wrapped_main(["update_etags", FileNameStr]) ->
     ProjectDir = erlang_project_dir(FileNameStr),
     avoid_parallel_update(
       ProjectDir,
-      fun() -> update_etags(ProjectDir) end);
+      fun() -> update_etags(ProjectDir) end,
+     "update_etags");
 wrapped_main(["update_etags_project_dir",
               ProjectDir,
               TagsFileName,
@@ -677,15 +680,17 @@ wrapped_main(["update_etags_project_dir",
       ProjectDir,
       fun() ->
               update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirs)
-      end);
+      end,
+      "update_etags_project_dir");
 wrapped_main(["update_completion_cache", CacheDir, FileNameStr]) ->
     avoid_parallel_update(
-      filename:join(CacheDir, erlang_project_dir(FileNameStr)),
+      erlang_project_cache_dir(CacheDir, erlang_project_dir(FileNameStr)),
       fun() ->
               erlang_project_update_cache(CacheDir,
                                           erlang_project_dir(FileNameStr),
                                           FileNameStr)
-      end);
+      end,
+      "update_completion_cache");
 wrapped_main(["list_modules", CacheDir, FileNameStr, _]) ->
     io:format(
       lists:join(
