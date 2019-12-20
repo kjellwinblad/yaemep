@@ -392,7 +392,9 @@ init file (note that the path in the code below needs to be
               (buffer-substring-no-properties function-start-point end-point))))
          (goto-first-arg-after-comp
           (lambda ()
-            (if (eq (string-to-char ")") (char-before))
+            (if (and (eq (string-to-char ")") (char-before))
+                     (not (eq (string-to-char "(")
+                              (char-before (+ -1 (point))))))
                 (progn
                   (search-backward "(" nil t nil)
                   (forward-char)))))
