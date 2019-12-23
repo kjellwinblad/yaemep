@@ -111,7 +111,7 @@ Install
    ;;
    ;; (add-hook 'c-mode 'yaemep-etags-auto-gen-mode)
    ```
-7. (**Optional**) Load etags TAGS file automatically after it has got
+7. (**Optional**) Load etags TAGS file automatically after it has gotten
    updated:
    ```elisp
    ;; The etags-table/etags-table.el is in the yaemep folder for your
