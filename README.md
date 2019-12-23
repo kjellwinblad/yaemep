@@ -200,13 +200,13 @@ trigger them.
 
 ### How YAEMEP Finds the Project Root
 
-YAEMEP's functions attempt to automatically find the root directory of
-the Erlang project. YAEMEP should be able to locate the root directory
-of most types of Erlang projects. To find the project root YAEMEP
-first tries to find a configuration file for one of the build systems
-`rebar3`, `mix`, and `erlang.mk`. If the root directory of the project
-can't be found based on the build system, YAEMEP will look for a
-`.git`, `.svn` or `.cvs` folder (version control system folders). If
+YAEMEP's functions attempt to find the root directory of the Erlang
+project automatically. YAEMEP should be able to locate the root
+directory of most types of Erlang projects. To find the project root
+YAEMEP first tries to find a configuration file for one of the build
+systems `rebar3`, `mix`, and `erlang.mk`. If the root directory of the
+project can't be found based on the build system, YAEMEP will look for
+a `.git`, `.svn` or `.cvs` folder (version control system folders). If
 YAEMEP cannot locate the project root using the methods described
 above, the directory where the file that is associated with the
 current buffer is stored will be used as the project root. Finally,
