@@ -125,11 +125,15 @@ one of the listed directories will be returned.
 3. Return the direcory where the file that is associated with the
 current buffer is located."
   (interactive)
-  (file-name-as-directory
-   (yaemep-support-escript-exec nil
-                                (list "get_project_dir"
-                                      (expand-file-name (buffer-file-name)))
-                                "the yaemep-project-dir function")))
+  (let ((project-dir
+         (file-name-as-directory
+          (yaemep-support-escript-exec nil
+                                       (list "get_project_dir"
+                                             (expand-file-name (buffer-file-name)))
+                                       "the yaemep-project-dir function"))))
+    (if (called-interactively-p)
+        (message project-dir))
+    project-dir))
 
 (defvar yaemep-etags-auto-gen-extra-dirs nil
   "yaemep-etags-auto-gen-mode will generate a TAGS file
