@@ -5,23 +5,23 @@ YAEMEP -- Yet Another Emacs Erlang Mode Extensions Package
 YAEMEP is an Emacs package that contains extensions to the major mode
 for Emacs called
 [erlang-mode](https://erlang.org/doc/apps/tools/erlang_mode_chapter.html). YAEMEP
-is designed to work without requiring the user to do any project
-specific set up and its only dependencies are that erlang-mode and the
-escript program are installed (escript is included in standard
-Erlang/OTP installations). One can easily select to use only a subset
-of the extensions provided by YAEMEP. YAEMEP contains the following
+does not require the user to do any project-specific setup, and its
+only dependencies are that erlang-mode and the escript program are
+installed (escript is included in standard Erlang/OTP
+installations). One can easily select to use only a subset of the
+extensions provided by YAEMEP. YAEMEP contains the following
 extensions ([Emacs minor
 modes](https://www.gnu.org/software/emacs/manual/html_node/emacs/Minor-Modes.html)):
 
 * **yaemep-completion-mode** provides completion of module names,
-  function names in a module, module local functions and local
+  function names in a module, module-local functions, and local
   variables. A function is added to Emacs built-in
   [completion-at-point-functions
   hook](https://www.gnu.org/software/emacs/manual/html_node/elisp/Completion-in-Buffers.html)
   when yaemep-completion-mode is activated.
 * **yaemep-etags-auto-gen-mode** provides automatic generation of
-  etags for Erlang projects (makes it possible to, e.g., go to the
-  function under the point by pressing "`M-.`")
+  etags for Erlang projects (this makes it possible to, e.g., go to
+  the function under the point by pressing "`M-.`")
 * **yaemep-extra-erlang-menu-mode** adds a menu with shortcuts to
   useful YAEMEP and erlang-mode Emacs functions.
 
@@ -57,12 +57,12 @@ Install
 5. (**Optional**) Install and activate company-mode to get modern
    in-buffer autocompletion:
    1. Install [company-mode](https://company-mode.github.io/), for
-      example, using one of the two alternatives below:
-      * Alternative 1 (Ubuntu and Debian based systems) -- Run the
+      example, using one of the two options below:
+      * **Option 1** (Ubuntu and Debian based systems) -- Run the
         command:
         
                 sudo apt-get install elpa-company
-      * Alternative 2 (Should work on all systems) -- Put the following
+      * **Option 2** (Should work on all systems) -- Put the following
         lines in your Emacs init file:
 
         ```elisp
@@ -151,9 +151,10 @@ User Guide
 
 Press the shortcut for completion somewhere inside an Erlang function
 definition to trigger completion. The shortcut for completion is
-"`C-M-i`" (i.e., the `CTRL`-key, `ALT`-key and the `i`-key at the same time on
-most systems). The shortcut for completion can easily be changed by
-putting something like the following in your Emacs init file:
+"`C-M-i`" (i.e., the `CTRL`-key, `ALT`-key, and the `i`-key at the
+same time on most systems). The shortcut for completion can easily be
+changed by putting something like the following in your Emacs init
+file:
 
 ``` elisp
 ;; Invoke completion by pressing the ALT-key and space-key at the same time:
@@ -161,33 +162,33 @@ putting something like the following in your Emacs init file:
 ```
 
 
-The line that the cursor/point is on need to be inside an Erlang
+The line that the cursor/point is on needs to be inside an Erlang
 function and start with a space or a tab character for completion to
 work. Below is a list of the types of completions that are available:
 
-* **modules, local functions and variables** -- Press the completion
+* **modules, local functions, and variables** -- Press the completion
   shortcut when there is a space before the cursor/point
 * **Only modules** -- Press the completion when the cursor is just before
   a colon character (i.e., `:`).
 * **Only local functions** -- Press the completion key when the
   cursor/point is just before the string `()`.
 * **Only variables** -- Press the completion key when the cursor/point
-  is directly after an `@` character
+  is directly after an `@`-character
 
 ### Go to Function at Point etc with `yaemep-etags-auto-gen-mode`
 
 The Emacs minor-mode `yaemep-etags-auto-gen-mode` automatically
 generates a `TAGS` file for Erlang projects that allows you to go the
-project function under point among other things. Only `.erl` and
+project function under point, among other things. Only `.erl` and
 `.hrl` files in the current project will be included in the `TAGS`
-file by default but this can be changed by setting the variables
-`yaemep-etags-auto-gen-extra-dirs`
+file by default, but this can be changed by setting the variables
+`yaemep-etags-auto-gen-extra-dirs` and
 `yaemep-etags-auto-gen-search-pattern`. See the install instructions
 in the Install section above for details about how to set these
 variables. Here is a list of useful shortcuts:
 
 * **`C-.`** Go to function under point
-* **`C-,`** Go back to original place after you have executed "go to
+* **`C-,`** Go back to the original place after you have executed "go to
   function under point"
 
 ### Menu with `yaemep-extra-erlang-menu-mode`
@@ -199,19 +200,19 @@ trigger them.
 
 ### How YAEMEP Finds the Project Root
 
-YAEMEP's functions attempt to automatically find the root of the
-project for the file that the current buffer is associated
-with. YAEMEP should be able to locate the root of most types of Erlang
-projects. To find the project root YAEMEP first tries to find a
-configuration file for one of the build systems `rebar3`, `mix` and
-`erlang.mk`. If the root of the project can't be found based on the
-build system, YAEMEP will look for a `.git`, `.svn` or `.cvs` folder
-(version control system folders). If YAEMEP cannot locate the project
-root using the methods described above, the folder where the file that
-is associated with the current buffer is stored will be used as the
-project root. Finally, you can force YAEMEP to use a particular folder
-by placing a file called "`.emacs_erlang_mode_project`" in the root of
-your project. You can type "`M-x yaemep-project-dir`" to check which
+YAEMEP's functions attempt to automatically find the root directory of
+the Erlang project. YAEMEP should be able to locate the root directory
+of most types of Erlang projects. To find the project root YAEMEP
+first tries to find a configuration file for one of the build systems
+`rebar3`, `mix`, and `erlang.mk`. If the root directory of the project
+can't be found based on the build system, YAEMEP will look for a
+`.git`, `.svn` or `.cvs` folder (version control system folders). If
+YAEMEP cannot locate the project root using the methods described
+above, the directory where the file that is associated with the
+current buffer is stored will be used as the project root. Finally,
+you can force YAEMEP to use a particular folder by placing a file
+called "`.emacs_erlang_mode_project`" in the root directory of your
+project. You can type "`M-x yaemep-project-dir`" to check which
 directory YAEMEP will use as the project directory.
 
 Links to Similar Projects
