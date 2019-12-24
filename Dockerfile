@@ -2,7 +2,7 @@ FROM erlang:22
 COPY . /yaemep/
 RUN apt-get update
 RUN apt-get install -y\
-        emacs-nox\
+        emacs25-nox\
         elpa-company\
         tmux\
         man\
