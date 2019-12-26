@@ -83,10 +83,18 @@ emacs_version_ok(AcceptVer) ->
 dquote(Str) ->
     "\"" ++ Str ++ "\"".
 
+
+erlang_mode_dir() ->
+    erlang:hd(filelib:wildcard(filename:join([emacs_dir(),
+                                              "example",
+                                              "emacs.d",
+                                              "elpa",
+                                              "erlang*"]))).
+
 emacs(EmacsCmds) when is_list(EmacsCmds) ->
     Cmd = ["emacs ",
            "--batch --quick ",
-           "--directory ", dquote(filename:join([emacs_dir(),"example", "emacs.d", "erlang"])), " ",
+           "--directory ", dquote(erlang_mode_dir()), " ",
            "--directory ", dquote(emacs_dir()), " ",
            "--eval \"(require 'yaemep)\" "
            | EmacsCmds],
