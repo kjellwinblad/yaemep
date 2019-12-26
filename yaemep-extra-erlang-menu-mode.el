@@ -1,3 +1,5 @@
+;;;  -*- lexical-binding: t; -*-
+
 ;; %CopyrightBegin%
 ;;
 ;; Copyright Kjell Winblad (http://winsh.me, kjellwinblad@gmail.com)
