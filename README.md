@@ -26,7 +26,7 @@ modes](https://www.gnu.org/software/emacs/manual/html_node/emacs/Minor-Modes.htm
   useful YAEMEP and erlang-mode Emacs functions.
 
 
-(Demo Video)[https://www.youtube.com/watch?v=qVshN48LBas]
+[Demo Video](https://www.youtube.com/watch?v=qVshN48LBas)
 
 
 Install
