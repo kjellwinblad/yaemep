@@ -151,7 +151,7 @@ test_complete_everything(_Config) ->
     Res = sets:from_list(parse_completion_list(os:cmd(Command))),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
-                                 false -> erlang:display(ShouldBeThere), false;
+                                 false -> false;
                                  true -> true
                              end
                      end,
@@ -187,7 +187,7 @@ test_complete_var(_Config) ->
                                                                      emacs_var_completion_string()])))),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
-                                 false -> erlang:display(ShouldBeThere), false;
+                                 false -> false;
                                  true -> true
                              end
                      end,
@@ -223,7 +223,7 @@ test_complete_local_function(_Config) ->
                                                                      "not_used"])))),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
-                                 false -> erlang:display(ShouldBeThere), false;
+                                 false -> false;
                                  true -> true
                              end
                      end,
@@ -250,7 +250,7 @@ test_complete_module(_Config) ->
                                                                      "not_used"])))),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
-                                 false -> erlang:display(ShouldBeThere), false;
+                                 false -> false;
                                  true -> true
                              end
                      end,
@@ -279,7 +279,7 @@ test_complete_functions_in_module(_Config) ->
                                                                      CompleteString])))),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
-                                 false -> erlang:display(ShouldBeThere), false;
+                                 false -> false;
                                  true -> true
                              end
                      end,
@@ -309,10 +309,9 @@ test_complete_functions_in_module_from_erl_file(_Config) ->
                                                                      emacs_cache_dir(),
                                                                      emacs_support_escript(),
                                                                      CompleteString])))),
-         erlang:display(sets:to_list(Res)),
          true = lists:all(fun(ShouldBeThere) ->
                                   case sets:is_element(ShouldBeThere, Res) of
-                                      false -> erlang:display(ShouldBeThere), false;
+                                      false -> false;
                                       true -> true
                                   end
                           end,
