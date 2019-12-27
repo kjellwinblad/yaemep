@@ -25,6 +25,10 @@ modes](https://www.gnu.org/software/emacs/manual/html_node/emacs/Minor-Modes.htm
 * **yaemep-extra-erlang-menu-mode** adds a menu with shortcuts to
   useful YAEMEP and erlang-mode Emacs functions.
 
+
+(Demo Video)[https://www.youtube.com/watch?v=qVshN48LBas]
+
+
 Install
 -------
 
