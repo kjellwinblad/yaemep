@@ -66,8 +66,7 @@ This function is broken in your version of Emacs
 erlang-mode. Please upgrade to version 2.8.3 (20191023.843) or
 later:
 
-https://melpa.org/#/erlang"
-             (yaemep-get-support-escript-path)))))
+https://melpa.org/#/erlang"))))
 
 ;;;###autoload
 (define-minor-mode yaemep-extra-erlang-menu-mode
@@ -92,27 +91,6 @@ https://melpa.org/#/erlang"
 (defun yaemep-mix-compile-project ()
   (interactive)
   (compile (format "cd \"%s\" && mix compile" (yaemep-project-dir))))
-
-
-(defun yaemep-completion-from-menu ()
-  (interactive)
-  (message "A%sA" (and (boundp 'yaemep-completion-mode)
-           yaemep-completion-mode))
-  (if (and (boundp 'yaemep-completion-mode)
-           yaemep-completion-mode)
-      (yaemep-company-complete-or-completion-at-point)
-    (with-output-to-temp-buffer "*YAEMEP yaemep-completion-mode not active*"
-      (princ
-       "
-
-YAEMEP completion does not work when
-yaemep-completion-mode is inactive. Please make sure that
-yaemep-completion-mode is active (you should have the text
-yaemep-comp just above the message and minibuffer area in your
-Emacs window). YAMEP install instructions and documentation
-should be available here:
-
-https://github.com/kjellwinblad/yaemep"))))
 
 
 (defun yaemep-extra-erlang-menu-mode-toggle ()

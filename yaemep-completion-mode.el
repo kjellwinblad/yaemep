@@ -21,33 +21,6 @@
 
 (require 'yaemep)
 
-(defun yaemep-company-complete-or-completion-at-point ()
-  "Run company-complete if activated and run completion-at-point
- otherwise"
-  (interactive)
-  (if (and (boundp 'company-mode) company-mode (fboundp 'company-complete))
-      (company-complete)
-    (completion-at-point)))
-
-
-(defun yaemep-completion ()
-  (interactive)
-  (if (and (boundp 'yaemep-completion-mode)
-           yaemep-completion-mode)
-      (yaemep-company-complete-or-completion-at-point)
-    (with-output-to-temp-buffer "*YAEMEP yaemep-completion-mode not active*"
-      (princ
-       "
-
-YAEMEP completion does not work when
-yaemep-completion-mode is inactive. Please make sure that
-yaemep-completion-mode is active (you should have the text
-yaemep-comp just above the message and minibuffer area in your
-Emacs window). YAMEP install instructions and documentation
-should be available here:
-
-https://github.com/kjellwinblad/yaemep"))))
-
 ;;;###autoload
 (define-minor-mode yaemep-completion-mode
   "Add completion-at-point function for Erlang"

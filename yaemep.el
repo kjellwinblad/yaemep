@@ -131,7 +131,7 @@ current buffer is located."
                                        (list "get_project_dir"
                                              (expand-file-name (buffer-file-name)))
                                        "the yaemep-project-dir function"))))
-    (if (called-interactively-p)
+    (if (called-interactively-p 'any)
         (message project-dir))
     project-dir))
 
@@ -202,7 +202,7 @@ OUTPUT-TAGS-FILE."
                  actual-output-tags-file)))
             (or search-pattern yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}"))
       (mapcar 'expand-file-name (or extra-directories yaemep-etags-auto-gen-extra-dirs))))
-    (if (called-interactively-p)
+    (if (called-interactively-p 'any)
         (progn
           (visit-tags-table (yaemep-project-dir))
           (message "Tags for %s updated and saved in %s" project-root output-tags-file))))
@@ -538,5 +538,32 @@ init file (note that the path in the code below needs to be
             nil
             :exclusive 'yes)))))
 
+
+(defun yaemep-company-complete-or-completion-at-point ()
+  "Run company-complete if activated and run completion-at-point
+ otherwise"
+  (interactive)
+  (if (and (boundp 'company-mode) company-mode (fboundp 'company-complete))
+      (company-complete)
+    (completion-at-point)))
+
+
+(defun yaemep-completion ()
+  (interactive)
+  (if (and (boundp 'yaemep-completion-mode)
+           yaemep-completion-mode)
+      (yaemep-company-complete-or-completion-at-point)
+    (with-output-to-temp-buffer "*YAEMEP yaemep-completion-mode not active*"
+      (princ
+       "
+
+YAEMEP completion does not work when
+yaemep-completion-mode is inactive. Please make sure that
+yaemep-completion-mode is active (you should have the text
+yaemep-comp just above the message and minibuffer area in your
+Emacs window). YAMEP install instructions and documentation
+should be available here:
+
+https://github.com/kjellwinblad/yaemep"))))
 
 (provide 'yaemep)

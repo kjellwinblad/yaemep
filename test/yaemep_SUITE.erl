@@ -20,7 +20,8 @@
 %%
 -module(yaemep_SUITE).
 
-%%-define(line_trace, 1).
+%% Code in this file has been copied from emacs_SUITE.erl file in the
+%% Erlang/OTP repository
 
 -export([all/0, init_per_testcase/2, end_per_testcase/2]).
 
@@ -29,7 +30,8 @@
          test_complete_local_function/1,
          test_complete_module/1,
          test_complete_functions_in_module/1,
-         test_complete_functions_in_module_from_erl_file/1
+         test_complete_functions_in_module_from_erl_file/1,
+         test_compile_and_load/1
         ]).
 
 all() ->
@@ -39,7 +41,8 @@ all() ->
      test_complete_local_function,
      test_complete_module,
      test_complete_functions_in_module,
-     test_complete_functions_in_module_from_erl_file
+     test_complete_functions_in_module_from_erl_file,
+     test_compile_and_load
     ].
 
 init_per_testcase(_Case, Config) ->
@@ -109,6 +112,26 @@ emacs(EmacsCmds) when is_list(EmacsCmds) ->
 emacs_dir() ->
     {ok, CurrentDir} = file:get_cwd(),
     filename:join([CurrentDir, "..", ".."]).
+
+test_compile_and_load(_Config) ->
+    Dir = emacs_dir(),
+    Files = filelib:wildcard("*.el", Dir),
+    Compile = fun(File) ->
+                      emacs([" -f batch-byte-compile ", dquote(filename:join(Dir, File))]),
+                      true
+              end,
+    lists:foreach(Compile, Files),
+    emacs(["-l ", dquote(filename:join(Dir, "yaemep.elc")),
+           " -l ", dquote(filename:join(Dir, "yaemep-completion-mode.elc")),
+           " -l ", dquote(filename:join(Dir, "yaemep-etags-auto-gen-mode.elc")),
+           " -l ", dquote(filename:join(Dir, "yaemep-extra-erlang-menu-mode.elc"))]),
+    ElcFiles = filelib:wildcard("*.elc", Dir),
+    Delete =
+        fun(File) ->
+                file:delete(filename:join(Dir, File))
+        end,
+    lists:foreach(Delete, ElcFiles),
+    ok.
 
 emacs_support_escript() ->
     filename:join([emacs_dir(), "emacs_erlang_yaemep_support.erl"]).
