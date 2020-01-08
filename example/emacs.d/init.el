@@ -51,16 +51,11 @@ There are two things you can do about this warning:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Install Erlang Mode
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'package)
-(package-initialize)
+
 (unless (package-installed-p 'erlang)
   (progn
-    (or (file-exists-p package-user-dir)
-        (package-refresh-contents))
+    (package-refresh-contents)
     (package-install 'erlang)))
-(add-to-list
- 'load-path
- "/the/path/to/your/erlang-mode/directory")
 (require 'erlang-start)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -139,8 +134,7 @@ There are two things you can do about this warning:
 (package-initialize)
 (unless (package-installed-p 'company)
   (progn
-    (or (file-exists-p package-user-dir)
-        (package-refresh-contents))
+    (package-refresh-contents)
     (package-install 'company)))
 
 ;; Load company-mode when erlang-mode has

@@ -670,7 +670,7 @@ wrapped_main(["update_etags", FileNameStr]) ->
     avoid_parallel_update(
       ProjectDir,
       fun() -> update_etags(ProjectDir) end,
-     "update_etags");
+      "update_etags");
 wrapped_main(["update_etags_project_dir",
               ProjectDir,
               TagsFileName,
@@ -682,6 +682,17 @@ wrapped_main(["update_etags_project_dir",
               update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirs)
       end,
       "update_etags_project_dir");
+wrapped_main(["update_etags_auto_project_dir",
+              FileNameStr,
+              SearchPattern|
+              AdditionalDirs]) ->
+    ProjectDir = erlang_project_dir(FileNameStr),
+    avoid_parallel_update(
+      ProjectDir,
+      fun() ->
+              update_etags(ProjectDir, filename:join(ProjectDir, "TAGS"), SearchPattern, AdditionalDirs)
+      end,
+      "update_etags_auto_project_dir");
 wrapped_main(["update_completion_cache", CacheDir, FileNameStr]) ->
     avoid_parallel_update(
       erlang_project_cache_dir(CacheDir, erlang_project_dir(FileNameStr)),

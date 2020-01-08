@@ -83,24 +83,47 @@
                        (or functionaliy-name "the currently executing function"))))
         (setq yaemep-check-support-escript-cache escript-ok))))
 
+(defvar yaemep-support-escript-exec-max-async-commands-recently-started 20)
+
 (defun yaemep-support-escript-exec (async parameter-list &optional functionaliy-name)
   "Executes the yaemep-mode support escript with the elements in
   PARAMETER-LIST as parameters. Returns the a string containing
   the text that the script printed to standard output, if ASYNC
   is nil. The function will return directly with the empty string
   as return value if ASYNC is t."
-  (if (not (yaemep-check-support-escript
-            (or functionaliy-name
-                "the yaemep-support-escript-exec function")))
-      ""
-    (with-temp-buffer
-      (progn
-        (eval (append (list 'call-process (yaemep-get-support-escript-command-path) nil
-                            (if async 0 t) nil)
-                      (list (yaemep-get-support-escript-path))
-                      parameter-list))
-
-        (buffer-string)))))
+  (if (not (boundp 'yaemep-support-escript-exec-already-running-count))
+      (setq yaemep-support-escript-exec-already-running-count 0))
+  (if (and async
+           (> yaemep-support-escript-exec-already-running-count
+              yaemep-support-escript-exec-max-async-commands-recently-started))
+      (message (concat "The following yaemep support escript command was not "
+                       "run because more than %d async commands may "
+                       "already be running:\n %s")
+               yaemep-support-escript-exec-max-async-commands-recently-started
+               parameter-list)
+    (progn
+      (if async
+          (progn
+            (setq yaemep-support-escript-exec-already-running-count
+                  (+ yaemep-support-escript-exec-already-running-count 1))
+            (progn
+              (run-at-time
+               "1 sec" nil
+               (lambda ()
+                 (setq yaemep-support-escript-exec-already-running-count
+                       (- yaemep-support-escript-exec-already-running-count 1)))))))
+      (if (not (yaemep-check-support-escript
+                (or functionaliy-name
+                    "the yaemep-support-escript-exec function")))
+          (progn
+            "")
+        (with-temp-buffer
+          (progn
+            (eval (append (list 'call-process (yaemep-get-support-escript-command-path) nil
+                                (if async 0 t) nil)
+                          (list (yaemep-get-support-escript-path))
+                          parameter-list))
+            (buffer-string)))))))
 
 (defun yaemep-project-dir ()
   "Attempts to automatically find the project root directory
@@ -209,23 +232,20 @@ OUTPUT-TAGS-FILE."
    (t
     nil)))
 
-(defun yaemep-project-etags-update-in-background (&optional
-                                                         search-pattern
-                                                         extra-directories
-                                                         project-root
-                                                         output-tags-file)
+(defun yaemep-project-etags-update-in-background ()
   "Run the etags command in the background on all files with the
 .erl and .hrl ending that are inside the project directory
 returned by the function yaemep-project-dir. See the
 documentation of the Emacs lisp function yaemep-project-dir and
 the etags command for more information."
   (interactive)
-  (yaemep-project-etags-update
-   project-root
-   output-tags-file
-   search-pattern
-   extra-directories
-   t))
+  (yaemep-support-escript-exec
+   t
+   (append
+    (list "update_etags_auto_project_dir"
+          (expand-file-name (buffer-file-name))
+          (or yaemep-etags-auto-gen-search-pattern "**/*.{erl,hrl}"))
+    (mapcar 'expand-file-name yaemep-etags-auto-gen-extra-dirs))))
 
 
 (defun yaemep-tags-help ()
