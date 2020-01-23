@@ -21,6 +21,8 @@
 
 -module(emacs_erlang_yaemep_support).
 
+-mode(compile). % so fun something/1 works in an escript
+
 -export([main/1]).
 
 -spec erlang_project_dir(string()) -> string().
@@ -127,6 +129,32 @@ is_erlang_otp_src_dir(Dir) ->
                           filelib:is_dir(filename:join([Dir, "lib", Lib]))
                   end, ["compiler", "kernel", "stdlib"]).
 
+-spec path_contains_rebar3_build_dir(string()) -> boolean().
+path_contains_rebar3_build_dir(Path) ->
+    lists:any(fun(Elem) -> Elem =:= "_build" end,
+              filename:split(Path)).
+
+-spec remove_dup_files_if([string()], fun((string()) -> boolean())) ->
+                                 [string()].
+remove_dup_files_if(Files, Pred) ->
+    remove_dup_files_if_aux(Files, Pred, _Seen = #{}).
+
+remove_dup_files_if_aux([File | Rest], Pred, Seen) ->
+    Base = filename:basename(File),
+    case Seen of
+        #{Base := true} ->
+            case Pred(File) of
+                true ->
+                    remove_dup_files_if_aux(Rest, Pred, Seen);
+                false ->
+                    [File | remove_dup_files_if_aux(Rest, Pred, Seen)]
+            end;
+        #{} ->
+            [File | remove_dup_files_if_aux(Rest, Pred, Seen#{Base => true})]
+    end;
+remove_dup_files_if_aux([], _Pred, _Seen) ->
+    [].
+
 -spec update_etags(string(),string(),string(),[string()]) -> ok.
 update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirectories) ->
     Dirs1 = [ProjectDir | AdditionalDirectories],
@@ -175,7 +203,17 @@ update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirectories) ->
                  end,
                  ErlHrlFiles1)
             end,
-    my_cmd("etags", ["-o", TagsFileName | ErlHrlFiles2]),
+    %% rebar3 creates a _build subdirectory with symlinks back to src
+    %% and include files, as well as code for dependencies.
+    %%
+    %% Remove duplicates in _build to avoid having to select which
+    %% file to jump to every time following a function (emacs 25+)
+    %% However, don't exclude all files in _build, because we want to be
+    %% able to jump into dependencies.
+    ErlHrlFiles3 =
+        remove_dup_files_if(ErlHrlFiles2,
+                            fun path_contains_rebar3_build_dir/1),
+    my_cmd("etags", ["-o", TagsFileName | ErlHrlFiles3]),
     ok.
 
 
