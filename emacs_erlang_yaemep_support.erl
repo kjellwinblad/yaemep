@@ -23,6 +23,12 @@
 
 -export([main/1]).
 
+-ifdef(OTP_RELEASE). % New stacktrace syntax and the OTP_RELEASE appeared in 21
+-define(STACKTRACE(C, R, St), C:R:St ->).
+-else. % -ifdef(OTP_RELEASE).
+-define(STACKTRACE(C, R, St), C:R -> St = erlang:get_stacktrace(),).
+-endif. % -ifdef(OTP_RELEASE).
+
 -spec erlang_project_dir(string()) -> string().
 erlang_project_dir(ErlangFilePath) ->
     DirPath = filename:dirname(ErlangFilePath),
@@ -755,7 +761,7 @@ main(List) ->
     try
         wrapped_main(List)
     catch
-        _:Term ->
+        ?STACKTRACE(_, Term, Stack)
             try
                 case List of
                     [_, CacheDir|_]  ->
@@ -763,7 +769,8 @@ main(List) ->
                             filename:join(CacheDir, "error_log.txt"),
                         filelib:ensure_dir(ErrorLogFile),
                         file:write_file(ErrorLogFile,
-                                        io_lib:format("~tp.~n", [Term]),
+                                        io_lib:format("~tp.~n  ~tp~n",
+                                                      [Term, Stack]),
                                         [append]);
                     _ -> error
                 end
