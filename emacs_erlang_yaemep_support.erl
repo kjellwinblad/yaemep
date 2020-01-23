@@ -761,15 +761,9 @@ main(List) ->
                     [_, CacheDir|_]  ->
                         ErrorLogFile =
                             filename:join(CacheDir, "error_log.txt"),
-                        PrevErrLog =
-                            case file:read_file(ErrorLogFile) of
-                                {ok, Binary} -> Binary;
-                                _ -> <<"">>
-                            end,
                         filelib:ensure_dir(ErrorLogFile),
                         file:write_file(ErrorLogFile,
-                                        [PrevErrLog, "\n",
-                                         io_lib:format("~tp.~n", [Term])],
+                                        io_lib:format("~tp.~n", [Term]),
                                         [append]);
                     _ -> error
                 end
