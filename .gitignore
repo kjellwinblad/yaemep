@@ -22,7 +22,7 @@ test/index.html
 test/jquery-latest.js
 test/jquery.tablesorter.min.js
 test/suite.log.latest.html
-test/variables-ct@shlap
+test/variables-ct@*
 test/*.beam
 test/ct_run.ct@*
 .dialyzer_plt
