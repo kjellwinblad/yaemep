@@ -7,4 +7,4 @@ RUN apt-get install -y\
         man\
         git
 COPY . /yaemep/
-CMD /yaemep/example/emacs_with_erlang_and_yaemep.sh /yaemep/emacs_erlang_yaemep_support.erl
+CMD /yaemep/example/emacs_with_erlang_and_yaemep.sh -bg black  /yaemep/emacs_erlang_yaemep_support.erl
