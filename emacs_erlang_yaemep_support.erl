@@ -21,7 +21,7 @@
 
 -module(emacs_erlang_yaemep_support).
 
--mode(compile). % so fun something/1 works in an escript
+%-mode(compile). % completion is faster in most cases without compilation
 
 -export([main/1]).
 
@@ -218,7 +218,7 @@ update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirectories) ->
     %% able to jump into dependencies.
     ErlHrlFiles3 =
         remove_dup_files_if(ErlHrlFiles2,
-                            fun path_contains_rebar3_build_dir/1),
+                            fun(P) -> path_contains_rebar3_build_dir(P) end),
     my_cmd("etags", ["-o", TagsFileName | ErlHrlFiles3]),
     ok.
 

@@ -171,7 +171,11 @@ test_complete_everything(_Config) ->
                                                                      emacs_support_escript(),
                                                                      emacs_var_completion_string()]),
     update_completion_cache(),
-    Res = sets:from_list(parse_completion_list(os:cmd(Command))),
+    {Time, Out} =
+        timer:tc(fun() ->
+                         os:cmd(Command)
+                 end),
+    Res = sets:from_list(parse_completion_list(Out)),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
                                  false -> false;
@@ -199,15 +203,20 @@ test_complete_everything(_Config) ->
                      end,
                      ["In1",
                       "In2",
-                      "In3"]).
+                      "In3"]),
+    {comment, Time/1000000}.
 
 
 test_complete_var(_Config) ->
-    Res = sets:from_list(parse_completion_list(os:cmd(io_lib:format("escript ~s list_local_vars ~s ~s ~s",
-                                                                    [emacs_support_escript(),
-                                                                     emacs_cache_dir(),
-                                                                     emacs_support_escript(),
-                                                                     emacs_var_completion_string()])))),
+    {Time, Out} =
+        timer:tc(fun() ->
+                         os:cmd(io_lib:format("escript ~s list_local_vars ~s ~s ~s",
+                                              [emacs_support_escript(),
+                                               emacs_cache_dir(),
+                                               emacs_support_escript(),
+                                               emacs_var_completion_string()]))
+                 end),
+    Res = sets:from_list(parse_completion_list(Out)),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
                                  false -> false;
@@ -235,15 +244,20 @@ test_complete_var(_Config) ->
                       "sets:",
                       "maps:",
                       "crypto:",
-                      "main(Arg)"]).
+                      "main(Arg)"]),
+    {comment, Time/1000000}.
 
 
 test_complete_local_function(_Config) ->
-    Res = sets:from_list(parse_completion_list(os:cmd(io_lib:format("escript ~s list_functions_in_erl_file ~s ~s ~s",
-                                                                    [emacs_support_escript(),
-                                                                     emacs_cache_dir(),
-                                                                     emacs_support_escript(),
-                                                                     "not_used"])))),
+    {Time, Out} =
+        timer:tc(fun() ->
+                         os:cmd(io_lib:format("escript ~s list_functions_in_erl_file ~s ~s ~s",
+                                              [emacs_support_escript(),
+                                               emacs_cache_dir(),
+                                               emacs_support_escript(),
+                                               "not_used"]))
+                 end),
+    Res = sets:from_list(parse_completion_list(Out)),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
                                  false -> false;
@@ -263,14 +277,19 @@ test_complete_local_function(_Config) ->
                       "sets:",
                       "maps:",
                       "crypto:",
-                      "main_not(Arg)"]).
+                      "main_not(Arg)"]),
+    {comment, Time/1000000}.
 
 test_complete_module(_Config) ->
-    Res = sets:from_list(parse_completion_list(os:cmd(io_lib:format("escript ~s list_modules ~s ~s ~s",
-                                                                    [emacs_support_escript(),
-                                                                     emacs_cache_dir(),
-                                                                     emacs_support_escript(),
-                                                                     "not_used"])))),
+    {Time, Out} =
+        timer:tc(fun() ->
+                         os:cmd(io_lib:format("escript ~s list_modules ~s ~s ~s",
+                                              [emacs_support_escript(),
+                                               emacs_cache_dir(),
+                                               emacs_support_escript(),
+                                               "not_used"]))
+                 end),
+    Res = sets:from_list(parse_completion_list(Out)),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
                                  false -> false;
@@ -289,60 +308,62 @@ test_complete_module(_Config) ->
                       "In1",
                       "In2",
                       "In3",
-                      "main_not(Arg)"]).
+                      "main_not(Arg)"]),
+    {comment, Time/1000000}.
 
 
 test_complete_functions_in_module(_Config) ->
-    [
-     begin
-         Res = sets:from_list(parse_completion_list(os:cmd(io_lib:format("escript ~s list_functions_in_module ~s ~s ~s",
-                                                                    [emacs_support_escript(),
-                                                                     emacs_cache_dir(),
-                                                                     emacs_support_escript(),
-                                                                     CompleteString])))),
+    Times =
+        [
+         begin
+             {Time, Out} =
+                 timer:tc(fun() ->
+                                  os:cmd(io_lib:format("escript ~s list_functions_in_module ~s ~s ~s",
+                                                       [emacs_support_escript(),
+                                                        emacs_cache_dir(),
+                                                        emacs_support_escript(),
+                                                        CompleteString]))
+                          end),
+             Res = sets:from_list(parse_completion_list(Out)),
+             true = lists:all(fun(ShouldBeThere) ->
+                                      case sets:is_element(ShouldBeThere, Res) of
+                                          false -> false;
+                                          true -> true
+                                      end
+                              end,
+                              ["lists:foreach(A1, A2)",
+                               "lists:all(A1, A2)",
+                               "lists:concat(Arg)",
+                               "lists:duplicate(A1, A2)"]),
+             true = lists:all(fun(ShouldNotBeThere) ->
+                                      not sets:is_element(ShouldNotBeThere, Res)
+                              end,
+                              ["lists:foreach"]),Time
+         end
+         || CompleteString <- ["lists:", "lists", "lists:for"]
+        ],
+    {comment, [T/1000000 || T <- Times]}.
+
+
+test_complete_functions_in_module_from_erl_file(_Config) ->
+    {Time, Out} =
+        timer:tc(fun() ->
+                         os:cmd(io_lib:format("escript ~s list_functions_in_module ~s ~s ~s",
+                                              [emacs_support_escript(),
+                                               emacs_cache_dir(),
+                                               emacs_support_escript(),
+                                               "emacs_erlang_yaemep_support"]))
+                 end),
+    Res = sets:from_list(parse_completion_list(Out)),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
                                  false -> false;
                                  true -> true
                              end
                      end,
-                     ["lists:foreach(A1, A2)",
-                      "lists:all(A1, A2)",
-                      "lists:concat(Arg)",
-                      "lists:duplicate(A1, A2)"]),
+                     ["emacs_erlang_yaemep_support:main(Arg)"]),
     true = lists:all(fun(ShouldNotBeThere) ->
                              not sets:is_element(ShouldNotBeThere, Res)
                      end,
-                     ["lists:foreach"])
-     end
-     || CompleteString <- ["lists:", "lists", "lists:for"]
-    ].
-
-
-test_complete_functions_in_module_from_erl_file(_Config) ->
-    [
-     begin
-         io:format(io_lib:format("escript ~s list_functions_in_module ~s ~s ~s",
-                                 [emacs_support_escript(),
-                                  emacs_cache_dir(),
-                                  emacs_support_escript(),
-                                  CompleteString])),
-         Res = sets:from_list(parse_completion_list(os:cmd(io_lib:format("escript ~s list_functions_in_module ~s ~s ~s",
-                                                                    [emacs_support_escript(),
-                                                                     emacs_cache_dir(),
-                                                                     emacs_support_escript(),
-                                                                     CompleteString])))),
-         true = lists:all(fun(ShouldBeThere) ->
-                                  case sets:is_element(ShouldBeThere, Res) of
-                                      false -> false;
-                                      true -> true
-                                  end
-                          end,
-                          ["emacs_erlang_yaemep_support:main(Arg)"]),
-    true = lists:all(fun(ShouldNotBeThere) ->
-                             not sets:is_element(ShouldNotBeThere, Res)
-                     end,
-                     ["lists:foreach"])
-     end
-     || CompleteString <- ["emacs_erlang_yaemep_support"]
-    ].
+                     ["lists:foreach"]),
+    {comment, Time/1000000}.
