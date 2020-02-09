@@ -68,11 +68,21 @@ later:
 
 https://melpa.org/#/erlang"))))
 
+(defun yaemep-goto-func ()
+  (interactive)
+  (let (prev-invoke-mode imenu-use-popup-menu)
+    (require 'imenu)
+    (setq-default imenu-use-popup-menu nil)
+    (call-interactively #'imenu)
+    (setq-default imenu-use-popup-menu prev-invoke-mode)))
+
+
 ;;;###autoload
 (define-minor-mode yaemep-extra-erlang-menu-mode
   "Add an extra Emacs menu with useful stuff"
   :lighter " yaemep-menu"
   :keymap (let ((map (make-sparse-keymap)))
+            (define-key map (kbd "C-c C-f") 'yaemep-goto-func)
             map))
 
 ;;;###autoload
@@ -105,6 +115,7 @@ https://melpa.org/#/erlang"))))
 
         (if (yaemep-check-support-escript "the yamep menu")
             (progn
+
               (define-key
                 yaemep-extra-erlang-menu-mode-map
                 [menu-bar yaemep-menu yaemep-mix-compile]
@@ -125,6 +136,16 @@ https://melpa.org/#/erlang"))))
                 [menu-bar yaemep-menu sep5]
                 '(menu-item "--"))
 
+              (define-key
+                yaemep-extra-erlang-menu-mode-map
+                [menu-bar yaemep-menu yamep-generate-etags]
+                '("Project: Generate TAGS" . yaemep-project-etags-update))
+
+              (define-key
+                yaemep-extra-erlang-menu-mode-map
+                [menu-bar yaemep-menu sep6]
+                '(menu-item "--"))
+
               (if (boundp 'erlang-version)
                   (if (string< erlang-version "2.8.3")
                       (define-key
@@ -136,23 +157,48 @@ https://melpa.org/#/erlang"))))
                       [menu-bar yaemep-menu yaemep-goto-erlang-man]
                       '("Documentation for Erlang/OTP Function Under Point" . erlang-man-function-no-prompt))))
 
-              (if (and (fboundp 'xref-find-definitions)
-                       (fboundp 'xref-pop-marker-stack))
-                  (progn
-                    (define-key
-                      yaemep-extra-erlang-menu-mode-map
-                      [menu-bar yaemep-menu sep4]
-                      '(menu-item "--"))
+              (define-key
+                yaemep-extra-erlang-menu-mode-map
+                [menu-bar yaemep-menu sep7]
+                '(menu-item "--"))
 
-                    (define-key
-                      yaemep-extra-erlang-menu-mode-map
-                      [menu-bar yaemep-menu yaemep-goto-thing-at-point]
-                      '("Go Back After Go to Thing at Point" . xref-pop-marker-stack))
+              (define-key
+                yaemep-extra-erlang-menu-mode-map
+                [menu-bar yaemep-menu yaemep-goto-fun-mod]
+                '("Go to Function in Current Module" . yaemep-goto-func))
 
-                    (define-key
-                      yaemep-extra-erlang-menu-mode-map
-                      [menu-bar yaemep-menu yaemep-goto-thing-at-point-go-back]
-                      '("Go to Thing at Point" . xref-find-definitions))))
+              (define-key
+                yaemep-extra-erlang-menu-mode-map
+                [menu-bar yaemep-menu sep4]
+                '(menu-item "--"))
+
+              (define-key
+                yaemep-extra-erlang-menu-mode-map
+                [menu-bar yaemep-menu yaemep-goto-thing-at-point-other-frame]
+                (if (fboundp 'xref-find-definitions-other-frame)
+                    '("Other Frame Go to Thing at Point" . xref-find-definitions-other-frame)
+                  '("Other Frame Go to Thing at Point" . find-tag-other-frame)))
+
+              (define-key
+                yaemep-extra-erlang-menu-mode-map
+                [menu-bar yaemep-menu yaemep-goto-thing-at-point-other-window]
+                (if (fboundp 'xref-find-definitions-other-window)
+                    '("Other Buffer Go to Thing at Point" . xref-find-definitions-other-window)
+                  '("Other Buffer Go to Thing at Point" . find-tag-other-window)))
+
+              (define-key
+                yaemep-extra-erlang-menu-mode-map
+                [menu-bar yaemep-menu yaemep-goto-thing-at-point]
+                (if (fboundp 'xref-pop-marker-stack)
+                    '("Go Back After Go to Thing at Point" . xref-pop-marker-stack)
+                  '("Go Back After Go to Thing at Point" . pop-tag-mark)))
+
+              (define-key
+                yaemep-extra-erlang-menu-mode-map
+                [menu-bar yaemep-menu yaemep-goto-thing-at-point-go-back]
+                (if (fboundp 'xref-find-definitions)
+                    '("Go to Thing at Point" . xref-find-definitions)
+                  '("Go to Thing at Point" . find-tag)))
 
               (define-key
                 yaemep-extra-erlang-menu-mode-map
@@ -167,17 +213,8 @@ https://melpa.org/#/erlang"))))
               (define-key
                 yaemep-extra-erlang-menu-mode-map
                 [menu-bar yaemep-menu sep1]
-                '(menu-item "--"))
-
-              (define-key
-                yaemep-extra-erlang-menu-mode-map
-                [menu-bar yaemep-menu yamep-generate-etags]
-                '("Generate TAGS for Project" . yaemep-project-etags-update))
-
-              (define-key
-                yaemep-extra-erlang-menu-mode-map
-                [menu-bar yaemep-menu sep2]
                 '(menu-item "--")))
+
           (progn
             (define-key
               yaemep-extra-erlang-menu-mode-map
