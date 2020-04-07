@@ -21,6 +21,8 @@
 
 -module(emacs_erlang_yaemep_support).
 
+-include_lib("kernel/include/file.hrl").
+
 %-mode(compile). % completion is faster in most cases without compilation
 
 -export([main/1]).
@@ -91,6 +93,201 @@ erlang_project_dir(ErlangFilePath) ->
                        end);
         Path -> Path
     end.
+
+%% The `find_files' is a like `filelib:wildcard', but takes care
+%% to avoid visiting paths in symlink loops more than once.
+%% If the project is large and symlinks point many levels root-wards,
+%% filelib:wildcard can take very long to complete, and can consume large
+%% amounts of memory as the same files are found multiple times.
+%%
+%% Support patterns on these forms:
+%% - TopDir/**/*.{erl,hrl,c,h}
+%% - TopDir/**/*.beam
+%% - TopDir/**/xyz.erl
+%% - TopDir/*.beam
+%% - TopDir/somefile.ext
+%%
+%% It is possible for the user to configure some file patterns.  If
+%% they are too complex for this `filelib:wildcard'-lookalike, fallback
+%% to using the real implementation. Symlink loops are probably rare.
+-spec find_files(Pattern::string()) -> [FileName::string()].
+find_files(Wildcard) ->
+    case analyze_wildcard(canonicalize_path(Wildcard)) of
+        {ok, {TopDir, Pattern}} ->
+            Visited0 = new_set(), % containing paths for files, dirs, symlinks
+            Acc0 = [],            % matching files
+            {_Visited, Acc} = traverse_fs(TopDir, Pattern, Visited0, Acc0),
+            lists:reverse(Acc);
+        {error, unhandled_wildcard} ->
+            io:format("falling back to filelib:wildcard~n"),
+            filelib:wildcard(Wildcard)
+    end.
+
+traverse_fs(Path, Pattern, Visited, Acc) ->
+    case file:list_dir(Path) of
+        {ok, Bases} ->
+            SubPaths = [filename:join(Path, Base) || Base <- Bases],
+            tr_fs_1(SubPaths, Pattern, Visited, Acc);
+        {error, _} ->
+            {Visited, Acc}
+    end.
+
+tr_fs_1([Path | Rest], Pattern, Visited, Acc) ->
+    BPath = safe_name_to_binary(Path), % to save memory, hopefully also time
+    case is_in_set(BPath, Visited) of
+        true ->
+            tr_fs_1(Rest, Pattern, Visited, Acc);
+        false ->
+            Visited1 = add_element(BPath, Visited),
+            case file:read_link_info(Path) of
+                {ok, #file_info{type=regular}} ->
+                    case matches_file_pattern(Path, Pattern) of
+                        true ->
+                            tr_fs_1(Rest, Pattern, Visited1, [Path | Acc]);
+                        false ->
+                            tr_fs_1(Rest, Pattern, Visited1, Acc)
+                    end;
+                {ok, #file_info{type=directory}} ->
+                    case is_recursive(Pattern) of
+                        true ->
+                            {Visited2, Acc2} = traverse_fs(Path, Pattern,
+                                                           Visited1, Acc),
+                            tr_fs_1(Rest, Pattern, Visited2, Acc2);
+                        false ->
+                            tr_fs_1(Rest, Pattern, Visited1, Acc)
+                    end;
+                {ok, #file_info{type=symlink}} ->
+                    case file:read_link(Path) of
+                        {ok, SymlinkTarget} ->
+                            %% Find the symlink dest, regardless of if it is
+                            %% relative or absolute. Use the fact
+                            %% that filename:join(Abs1, Abs2) -> Abs2
+                            CurrDir = filename:dirname(Path),
+                            TargetPath = filename:join(CurrDir, SymlinkTarget),
+                            CPath = canonicalize_path(TargetPath),
+                            tr_fs_1([CPath | Rest], Pattern, Visited1, Acc);
+                        {error, _} ->
+                            tr_fs_1(Rest, Pattern, Visited1, Acc)
+                    end;
+                {ok, _X} ->
+                    tr_fs_1(Rest, Pattern, Visited, Acc);
+                {error, _X} ->
+                    tr_fs_1(Rest, Pattern, Visited, Acc)
+            end
+    end;
+tr_fs_1([], _Pattern, Visited, Acc) ->
+    {Visited, Acc}.
+
+new_set() ->
+    #{}.
+
+add_element(Elem, Set) ->
+    Set#{Elem => true}.
+
+is_in_set(Elem, Set) ->
+    maps:is_key(Elem, Set).
+
+-spec analyze_wildcard(string()) -> {TopDir, FilePattern} when
+      TopDir :: string(),
+      FilePattern :: BasePattern | {recursively, BasePattern},
+      BasePattern :: {extensions, [string()]} | % with leading dots
+                     {exact_base, string()}.
+analyze_wildcard(Wildcard) ->
+    try
+        case lists:reverse(filename:split(Wildcard)) of
+            [BasePattern, "**" | TopDirReversed] ->
+                TopDir = filename:join(lists:reverse(TopDirReversed)),
+                error_if_wildcards(TopDir),
+                Pattern = {recursively, analyze_base_pattern(BasePattern)},
+                {ok, {TopDir, Pattern}};
+            [BasePattern | TopDirReversed] ->
+                TopDir = filename:join(lists:reverse(TopDirReversed)),
+                error_if_wildcards(TopDir),
+                Pattern = analyze_base_pattern(BasePattern),
+                {ok, {TopDir, Pattern}};
+            _ ->
+                throw({error, unhandled_wildcard})
+        end
+    catch throw:{error, Reason} ->
+            {error, Reason}
+    end.
+
+analyze_base_pattern("*."++ExtPattern) ->
+    Exts = analyze_extension_pattern(ExtPattern),
+    _ = [error_if_wildcards(Ext) || Ext <- Exts],
+    {extensions, Exts};
+analyze_base_pattern(X) ->
+    error_if_wildcards(X),
+    {exact_base, X}.
+
+analyze_extension_pattern("{"++AltsRest) ->
+    analyze_ext_alts(AltsRest, ".", []);
+analyze_extension_pattern(X) ->
+    ["."++X].
+
+analyze_ext_alts(","++Rest, Curr, Acc) ->
+    if Curr =/= "." -> analyze_ext_alts(Rest, ".", [lists:reverse(Curr) | Acc]);
+       Curr =:= "." -> analyze_ext_alts(Rest, ".", Acc)
+    end;
+analyze_ext_alts("}"++_, Curr, Acc) ->
+    if Curr =/= "." -> lists:reverse([lists:reverse(Curr) | Acc]);
+       Curr =:= "." -> lists:reverse(Acc)
+    end;
+analyze_ext_alts([C | Rest], Curr, Acc) ->
+    analyze_ext_alts(Rest, [C | Curr], Acc).
+
+error_if_wildcards("**"++_)  -> throw({error, unhandled_wildcard});
+error_if_wildcards("*"++_)   -> throw({error, unhandled_wildcard});
+error_if_wildcards("?"++_)   -> throw({error, unhandled_wildcard});
+error_if_wildcards("{"++_)   -> throw({error, unhandled_wildcard});
+error_if_wildcards("["++_)   -> throw({error, unhandled_wildcard});
+error_if_wildcards([_ | Tl]) -> error_if_wildcards(Tl);
+error_if_wildcards("")       ->  ok.
+
+matches_file_pattern(Path, {recursively, BasePattern}) ->
+    matches_file_pattern(Path, BasePattern);
+matches_file_pattern(Path, {exact_base, Base}) ->
+    filename:basename(Path) =:= Base;
+matches_file_pattern(Path, {extensions, Exts}) ->
+    lists:member(filename:extension(Path), Exts).
+
+is_recursive({recursively, _}) ->
+    true;
+is_recursive(_) ->
+    false.
+
+%% Filenames may perhaps not even be valid unicode, handle a list of
+%% any (positive) integers.
+safe_name_to_binary(Str) ->
+    try list_to_binary(Str)
+    catch error:_ -> str_to_binary(Str, <<>>)
+    end.
+
+str_to_binary([C | Rest], Acc) ->
+    str_to_binary(Rest, char_to_binary(C, Acc));
+str_to_binary("", Acc) ->
+    Acc.
+
+char_to_binary(N, Acc) when 0 =< N, N =< 255 ->
+    <<Acc/binary, N>>;
+char_to_binary(N, Acc) when N > 255 ->
+    N1 = N rem 256,
+    Rest = N div 256,
+    char_to_binary(Rest, <<Acc/binary, N1>>).
+
+%% Examples:
+%%   /a/b/../c   -> /a/c
+%%   /a/b/./c    -> /a/b/c
+%%   /../../../x -> /x     % can't go more up than /
+canonicalize_path(Path) when Path =/= "" ->
+    Root = hd(filename:split(Path)),
+    filename:join(canonpath(filename:split(Path), Root, [])).
+
+canonpath([".." | Rest], Root, [Root])    -> canonpath(Rest, Root, [Root]);
+canonpath([".." | Rest], Root, [_|Acc])   -> canonpath(Rest, Root, Acc);
+canonpath(["." | Rest], Root, Acc)        -> canonpath(Rest, Root, Acc);
+canonpath([X | Rest], Root, Acc)          -> canonpath(Rest, Root, [X | Acc]);
+canonpath([], _Root, Acc)                 -> lists:reverse(Acc).
 
 %% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 %% Code to run command with argument that may have spaces in them.
@@ -186,7 +383,7 @@ update_etags(ProjectDir, TagsFileName, SearchPattern, AdditionalDirectories) ->
     ErlHrlFiles1 =
         lists:foldl(
           fun(Directory, SoFar) ->
-                  filelib:wildcard(filename:join(Directory, SearchPattern)) ++ SoFar
+                  find_files(filename:join(Directory, SearchPattern)) ++ SoFar
           end,
           [],
           Dirs2),
@@ -240,7 +437,7 @@ update_etags(ProjectDir) ->
 
 -spec erlang_project_lib_directories(string()) -> [string()].
 erlang_project_lib_directories(ProjectDir) ->
-    BeamFiles = filelib:wildcard(filename:join(ProjectDir, "**/*.beam")),
+    BeamFiles = find_files(filename:join(ProjectDir, "**/*.beam")),
     BeamDirs = [filename:dirname(BeamFile) || BeamFile <- BeamFiles],
     sets:to_list(sets:from_list(BeamDirs)).
 
@@ -273,7 +470,7 @@ erlang_project_add_project_lib_dirs_to_path_from_cache(CacheDir, ProjectDir) ->
 
 
 erlang_project_all_erl_files(ProjectDir) ->
-    filelib:wildcard(filename:join(ProjectDir, "**/*.erl")).
+    find_files(filename:join(ProjectDir, "**/*.erl")).
 
 -spec erlang_project_all_modules(string()) -> [string()].
 erlang_project_all_modules(ProjectDir) ->
@@ -281,7 +478,7 @@ erlang_project_all_modules(ProjectDir) ->
     BeamSet =
         sets:from_list([filename:rootname(filename:basename(F))
                         || P <- code:get_path(),
-                           F <- filelib:wildcard(P ++ "/*.beam")]),
+                           F <- find_files(P ++ "/*.beam")]),
     ErlSet =
         sets:from_list(
           [filename:rootname(filename:basename(F))
@@ -443,16 +640,16 @@ list_functions_in_module_from_erl_file(CacheDir,
     catch
         _:_ ->
             ErlFiles =
-                filelib:wildcard(filename:join(ProjectDir,
-                                               io_lib:format("**/~s.erl",
-                                                             [ModuleNameStr]))),
+                find_files(
+                  filename:join(ProjectDir, lists:flatten(
+                                              io_lib:format("**/~s.erl",
+                                                            [ModuleNameStr])))),
             case ErlFiles of
                 [ErlFile|_] ->
                     list_functions_in_module_from_erl_file(ErlFile);
                 _ -> []
             end
     end.
-
 
 -spec list_functions_in_module(string(), string(), string()) -> [string()].
 list_functions_in_module(CacheDir, FileNameStr, ModuleNameStr) ->
@@ -482,7 +679,6 @@ list_functions_in_module(CacheDir, FileNameStr, ModuleNameStr) ->
                                                              ProjectDir,
                                                              ModuleNameStr))
     end.
-
 
 -spec list_functions_in_erl_file(string()) -> [string()].
 list_functions_in_erl_file(FileNameStr) ->
@@ -795,6 +991,9 @@ wrapped_main(["list_local_vars", _CacheDir, _FileNameStr, CompletionString]) ->
     io:format("~s", [lists:join(";", list_local_vars(CompletionString))]).
 
 -spec main([string()]) -> ok | error.
+main(["find_files", Pattern]) ->
+    io:format("Result for ~p:~n", [Pattern]),
+    [io:format("  ~s~n", [F]) || F <- find_files(Pattern)];
 main(List) ->
     try
         wrapped_main(List)

@@ -31,7 +31,9 @@
          test_complete_module/1,
          test_complete_functions_in_module/1,
          test_complete_functions_in_module_from_erl_file/1,
-         test_compile_and_load/1
+         test_compile_and_load/1,
+         test_find_files_when_symlinks/1,
+         test_find_files_patterns/1
         ]).
 
 all() ->
@@ -42,7 +44,9 @@ all() ->
      test_complete_module,
      test_complete_functions_in_module,
      test_complete_functions_in_module_from_erl_file,
-     test_compile_and_load
+     test_compile_and_load,
+     test_find_files_when_symlinks,
+     test_find_files_patterns
     ].
 
 init_per_testcase(_Case, Config) ->
@@ -132,6 +136,192 @@ test_compile_and_load(_Config) ->
         end,
     lists:foreach(Delete, ElcFiles),
     ok.
+
+test_find_files_when_symlinks(Config) ->
+    Files1 = ["d/2 -> ..",
+              "d/x.dummy"],
+    DirWithSymLoops1 = setup_files(Files1, Config),
+    %% Expect (only) one match despite a symlink loop (even for a
+    %% non-symlink-aware implementation, directory traversal will
+    %% eventually terminate with an eloop error)
+    ["d/x.dummy"] =
+        run_emacs_support_escript_find_files(
+          DirWithSymLoops1,
+          filename:join([DirWithSymLoops1, "**", "*.dummy"])),
+
+    %% Now check that non-loop symlinks within the directory structure
+    %% are found, and found only once.
+    Files2 = ["d/an-alias -> ./dd2",
+              "d/dd2/f1.dummy"],
+    DirWithSymLoops2 = setup_files(Files2, Config),
+    ["d/dd2/f1.dummy"] =  % should not be found as d/an-alias/f1.dummy
+        run_emacs_support_escript_find_files(
+          DirWithSymLoops2,
+          filename:join([DirWithSymLoops2, "**", "*.dummy"])),
+
+    %% Now check that symlinks outside the top dir are followed
+    Files3 = ["inside/l -> ../outside",
+              "inside/some_file.dummy",
+              "outside/other_file.dummy"],
+    DirWithSymLoops3 = setup_files(Files3, Config),
+    ["inside/some_file.dummy",
+     "outside/other_file.dummy"] =
+        run_emacs_support_escript_find_files(
+          DirWithSymLoops3,
+          filename:join([DirWithSymLoops3, "inside", "**", "*.dummy"])),
+
+    %% Canonicalization of ../ and ./ in symlinks
+    Files4 = ["inside/l -> ../inside/./../inside/../outside",
+              "outside/f.dummy"],
+    DirWithSymLoops4 = setup_files(Files4, Config),
+    ["outside/f.dummy"] =
+        run_emacs_support_escript_find_files(
+          DirWithSymLoops4,
+          filename:join([DirWithSymLoops4, "inside", "**", "*.dummy"])),
+    ok.
+
+test_find_files_patterns(Config) ->
+    Files = ["d/a/b/include/x.hrl",
+             "d/a/b/src/x.erl",
+             "d/a/b/ebin/x.beam",
+             "g/c/d/include/y.hrl",
+             "g/c/f/include/z.hrl",
+             "doc/a.html",
+             "README.md"],
+    DirTop = setup_files(Files, Config),
+
+    %% Alternative suffices in the patterns (any levels down)
+    ["d/a/b/include/x.hrl",
+     "d/a/b/src/x.erl",
+     "g/c/d/include/y.hrl",
+     "g/c/f/include/z.hrl"] =
+        run_emacs_support_escript_find_files(
+          DirTop,
+          filename:join([DirTop, "**", "*.{erl,hrl}"])),
+
+    %% Just a file suffix (any levels down)
+    ["d/a/b/ebin/x.beam"] =
+        run_emacs_support_escript_find_files(
+          DirTop,
+          filename:join([DirTop, "**", "*.beam"])),
+
+    %% Just a file suffix (just one level down)
+    ["doc/a.html"] =
+        run_emacs_support_escript_find_files(
+          DirTop,
+          filename:join([DirTop, "*", "*.html"])),
+
+    %% Base name is a not a pattern (any levels down)
+    ["d/a/b/ebin/x.beam"] =
+        run_emacs_support_escript_find_files(
+          DirTop,
+          filename:join([DirTop, "**", "x.beam"])),
+
+    %% No pattern (in top dir, no levels down)
+    ["README.md"] =
+        run_emacs_support_escript_find_files(
+          DirTop,
+          filename:join([DirTop, "README.md"])),
+
+    %% Handles also complicated patterns (falling back to filelib:wildcard)
+    ["d/a/b/include/x.hrl",
+     "d/a/b/src/x.erl",
+     %% "g/c/d/include/y.hrl", Not expecting to find this one
+     "g/c/f/include/z.hrl"] =
+        run_emacs_support_escript_find_files(
+          DirTop,
+          filename:join([DirTop, "{d,g}/*/{b,f}/*/*.{erl,hrl}"])),
+    ok.
+
+setup_files(Files, Config) ->
+    PrivDir = proplists:get_value(priv_dir, Config),
+    DirTop = mk_new_dir(PrivDir, "dir-", 1),
+    setup_files_2(Files, DirTop),
+    debug_dir_structure(DirTop),
+    DirTop.
+
+mk_new_dir(Dir, SubDirBase, I) ->
+    Path = filename:join(Dir, SubDirBase ++ integer_to_list(I)),
+    case file_make_dir(Path) of
+        {error, eexist} ->
+            mk_new_dir(Dir, SubDirBase, I+1);
+        ok ->
+            Path
+    end.
+
+setup_files_2([Entry | Rest], DirTop) ->
+    case string:split(Entry, " -> ") of
+        [_] ->
+            Path = filename:join(DirTop, Entry),
+            filelib_ensure_dir(Path),
+            file_write_file(Path, <<>>),
+            setup_files_2(Rest, DirTop);
+        [SymlinkName, Target] ->
+            Path = filename:join(DirTop, SymlinkName),
+            filelib_ensure_dir(Path),
+            file_make_symlink(Target, Path),
+            setup_files_2(Rest, DirTop)
+    end;
+setup_files_2([], _DirTop) ->
+    ok.
+
+run_emacs_support_escript_find_files(TopDir, Pattern) ->
+    Cmd = io_lib:format("escript '~s' find_files '~s'",
+                        [emacs_support_escript(), Pattern]),
+    Output = os:cmd(Cmd),
+    Lines = [Line || Line <- string:lexemes(Output, ["\r\n", $\n])],
+    case Lines of
+        ["Result for "++_ | Results] ->
+            lists:sort([unprefix_topdir(TopDir, RestLine)
+                        || "  "++RestLine <- Results]);
+        _ ->
+            ct:log("Unexpected output from escript:~n~s~n---------~n",
+                   [Output]),
+            error({unexpected_output, Lines})
+    end.
+
+unprefix_topdir(TopDir, Path) ->
+    case lists:prefix(TopDir, Path) of
+        true  -> string:slice(Path, length(TopDir) + 1); % + 1 to skip the '/'
+        false -> Path
+    end.
+
+%% Some wrappers for functions in the `file' module, to make debugging
+%% easier in case of failures, so we see what path any failure is for.
+file_make_dir(Path) ->
+    case file:make_dir(Path) of
+        ok              -> ok;
+        {error, eexist} -> {error, eexist};
+        Other           -> file_fail({'file:make_dir',[Path]}, Other)
+    end.
+
+file_write_file(Path, Data) ->
+    case file:write_file(Path, Data) of
+        ok           -> ok;
+        {error, Why} -> file_fail({'file:make_dir',[Path]}, Why)
+    end.
+
+filelib_ensure_dir(Path) ->
+    case filelib:ensure_dir(Path) of
+        ok  -> ok;
+        Err -> file_fail({'filelib:ensure_dir',[Path]}, Err)
+    end.
+
+file_make_symlink(Target, Path) ->
+    case file:make_symlink(Target, Path) of
+        ok           -> ok;
+        {error, Why} -> file_fail({'file:make_symlink',[Target, Path]}, Why)
+    end.
+
+
+file_fail(Call, Error) ->
+    error({file_op_failed, #{call => Call,
+                             error => Error}}).
+
+debug_dir_structure(DirTop) ->
+    LsOutput = os:cmd("find '" ++ DirTop ++ "' -print0 | xargs -0 ls -ld"),
+    ct:log("dir structure in ~p:~n~s-------~n",
+           [DirTop, string:replace(LsOutput, DirTop, "...", all)]).
 
 emacs_support_escript() ->
     filename:join([emacs_dir(), "emacs_erlang_yaemep_support.erl"]).
