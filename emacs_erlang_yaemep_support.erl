@@ -123,6 +123,17 @@ find_files(Wildcard) ->
             filelib:wildcard(Wildcard)
     end.
 
+find_files_with_timeout(Pattern, Timeout) ->
+    {Pid, MRef} = spawn_monitor(fun() -> exit(find_files(Pattern)) end),
+    receive
+        {'DOWN', MRef, _, _, Result} ->
+            Result
+    after Timeout ->
+            exit(Pid, shutdown),
+            demonitor(MRef, [flush]),
+            []
+    end.
+
 traverse_fs(Path, Pattern, Visited, Acc) ->
     case file:list_dir(Path) of
         {ok, Bases} ->
@@ -640,10 +651,11 @@ list_functions_in_module_from_erl_file(CacheDir,
     catch
         _:_ ->
             ErlFiles =
-                find_files(
+                find_files_with_timeout(
                   filename:join(ProjectDir, lists:flatten(
                                               io_lib:format("**/~s.erl",
-                                                            [ModuleNameStr])))),
+                                                            [ModuleNameStr]))),
+                  5000),
             case ErlFiles of
                 [ErlFile|_] ->
                     list_functions_in_module_from_erl_file(ErlFile);
