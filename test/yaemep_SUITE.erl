@@ -366,9 +366,10 @@ test_complete_everything(_Config) ->
                          os:cmd(Command)
                  end),
     Res = sets:from_list(parse_completion_list(Out)),
+    %% erlang:display(parse_completion_list(Out)),
     true = lists:all(fun(ShouldBeThere) ->
                              case sets:is_element(ShouldBeThere, Res) of
-                                 false -> false;
+                                 false -> erlang:display(ShouldBeThere),false;
                                  true -> true
                              end
                      end,
@@ -384,9 +385,8 @@ test_complete_everything(_Config) ->
                       "Var5",
                       "Var6",
                       "lists:",
-                      "sets:",
+                      "gb_sets:",
                       "maps:",
-                      "crypto:",
                       "main(List)"]),
     true = lists:all(fun(ShouldNotBeThere) ->
                              not sets:is_element(ShouldNotBeThere, Res)
@@ -487,9 +487,7 @@ test_complete_module(_Config) ->
                              end
                      end,
                      ["lists",
-                      "sets",
-                      "maps",
-                      "crypto"]),
+                      "maps"]),
     true = lists:all(fun(ShouldNotBeThere) ->
                              not sets:is_element(ShouldNotBeThere, Res)
                      end,
